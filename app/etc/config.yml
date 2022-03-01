@@ -1,0 +1,47 @@
+# 配置文档
+
+yunwen:
+    host: http://v5-gdc2-01.faqrobot.net
+    path:
+        # 标准问题检索
+        search: /chatbot/api/inputPrompt/{sys_num}
+        # token获取
+        token: /admin/token/getToken
+        # 进线意图查询
+        intention: /aiivr/ivr/v1/getVdnByPhone
+        # 根据vdn和手机号处理进线意图
+        intention_feedback: /aiivr/third/v1/feedbackVdn
+        # TOP问题获取
+        question: /admin/private/jomoo/v1/getHotQuestion
+        # 问题知识搜索
+        answer: /admin/private/jomoo/v1/getHotQuestionInfo
+    # 测试环境 用于实时获取token
+    app_id: 421vaOJ0JMyNVJ6kMA
+    secret: 10Ti5rvwTHPReO70512a1ec25
+    # 必要参数
+
+    sys_num: 1621329960501
+    source_id: 215
+    client_id: hjhj
+
+qianxun:
+    host: http://127.0.0.1:8184
+    path:
+        warning: /warning
+        # 识别结果, 将识别结果不断推送到系统中
+        result: /recognizeResult/accessPoint
+
+
+# redis数据库配置
+redis:
+    host: 127.0.0.1
+    port: 6379
+    db: 1
+
+# mysql
+mysql:
+    host: 127.0.0.1
+    port: 3306
+    user: root
+    passwd: wawawa
+
