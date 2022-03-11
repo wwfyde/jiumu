@@ -48,3 +48,30 @@ def create_demo(db: Session, demo: schemas.Demo):
     return db_demo
 
 
+def update_demo(db: Session, demo: schemas.Demo):
+
+    # db_demo = models.Demo(name=demo.name, type=demo.type, desc=demo.desc)
+    # db.add(db_demo)
+    db_demo = db.query(models.Demo).filter_by(name=demo.name).first()
+    db_demo.desc = demo.desc
+
+    return db_demo
+
+
+def get_question(db: Session, question: str):
+
+    return db.query(models.Question).filter(models.Question.question == question).first()
+
+
+def get_question_by_id(db: Session, id: str):
+    return db.query(models.Question).filter(models.Question.id == id).first()
+
+
+def get_question_by_knowledge_id(db: Session, knowledge_id: str):
+    """
+
+    :param db:
+    :param knowledge_id:
+    :return:
+    """
+    return db.query(models.Question).filter(models.Question.knowledge_id == knowledge_id).first()

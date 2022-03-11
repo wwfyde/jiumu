@@ -43,9 +43,33 @@ class Demo(BaseModel):
     type: bool
     desc: str
 
+# class
+
 
 class Feedback(BaseModel):
     question: str
     knowledge_id: int
     feedback: int
     agent: Union[int, str]
+
+
+class Question(BaseModel):
+    question: str
+    knowledge_id: int
+    intention: int
+    agent: Union[int, str] | None = None
+
+
+class QuestionCreate(Question):
+    create_time: str | None = None
+    update_time: str | None = None
+
+
+class QuestionFeedback(Question):
+    feedback: int = 0
+
+
+class QuestionStatistics(Question):
+    access_times: int | None = None
+
+

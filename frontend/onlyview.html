@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" type="text/css" href="css/onlyview.css" />
+  </link>
+  <link rel="stylesheet" href="css/theme-chalk/index.css">
+  <link rel="stylesheet" href="css/elementui.css">
+  <title></title>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="box"> 
+      <div class="header">
+        <el-row :gutter="20">
+          <el-col :span="3">
+            <div class="grid-content bg-purple cusInt">
+              <div v-if="isLoading">
+                <img src="./images/loading.gif" class="loading" alt="">
+              </div>
+              <span v-else class="customerIntention">{{intentionName}}</span>
+            </div>
+          </el-col>
+          <el-col :span="3">
+            <div class="grid-content bg-purple callNum">
+              <div class="dateElec">今日来电：<span style="color: red">{{today}}</span> 次</div>
+              <div class="monthElec">本月来电：<span style="color: red">{{month}}</span> 次</div>
+            </div>
+          </el-col>
+          <el-col :span="10">
+            <div class="grid-content bg-purple tabNum">
+              <div class="tabItem">
+                <el-collapse accordion>
+                  <el-collapse-item>
+                    <template slot="title">
+                      <div class="tabs">
+                        <el-tag
+                          v-for="(tag,index) in firstFiveTabs"
+                          :key="tag.id"
+                          closable
+                          :type="tag.type"
+                          @click.stop="tagClick(tag)"
+                          @close="handleClose(tag)"
+                          >
+                          {{tag.question}}
+                        </el-tag>
+                      </div>
+                    </template>
+                    <div class="otherTabs secondOther">
+                      <el-tag
+                        v-for="(tag,index) in secondFiveTabs"
+                        :key="tag.id"
+                        closable
+                        :type="tag.type"
+                        @click.stop="tagClick(tag)"
+                        @close="handleClose(tag)"
+                        >
+                        {{tag.question}}
+                      </el-tag>
+                    </div>
+                    <div class="otherTabs">
+                      <el-tag
+                        v-for="(tag,index) in thirdFiveTabs"
+                        :key="tag.id"
+                        closable
+                        :type="tag.type"
+                        @click.stop="tagClick(tag)"
+                        @close="handleClose(tag)"
+                        >
+                        {{tag.question}}
+                      </el-tag>
+                    </div>
+                    <div class="otherTabs">
+                      <el-tag
+                        v-for="(tag,index) in fourthFiveTabs"
+                        :key="tag.id"
+                        closable
+                        :type="tag.type"
+                        @click.stop="tagClick(tag)"
+                        @close="handleClose(tag)"
+                        >
+                        {{tag.question}}
+                      </el-tag>
+                    </div>
+                  </el-collapse-item>
+                </el-collapse>
+              </div>
+            </div>
+          </el-col>
+          <el-col :span="7">
+            <div class="grid-content bg-purple checkResult">
+              <div class="checkResultOne" :style="{ background: resultOneColor }">{{resultOneName}}</div>
+              <div class="checkResultTwo" :style="{ background: resultTwoColor }">{{resultTwoName}}</div>
+            </div>
+          </el-col>
+          <el-col :span="1">
+            <div class="grid-content last-purple-btn">
+              <el-button id="btnId" square @click="showBtn(isShow)" size="mini" :icon = "iconDatas"></el-button>
+            </div>
+          </el-col>
+        </el-row>
+      </div>
+      <div class="content" ref="content">
+        <el-collapse-transition>
+          <div v-show="isShow" class="contentBox">
+            <div class="leftBox">
+              <div class="searchQuestions">
+                <el-input
+                  placeholder="输入关键字进行过滤"
+                  v-model="searchProblem"
+                  >
+                 <i slot="suffix" class="el-icon-search iconStyle" @click="search"></i>
+                </el-input>
+                <el-tree
+                  ref="tree"
+                  :data="treeData"
+                  show-checkbox
+                  node-key="knowledge_id"
+                  default-expand-all
+                  :expand-on-click-node="false"
+                  :props="defaultProps"
+                  @node-click="handleNodeClick"
+                  >
+                  <span class="custom-tree-node" slot-scope="{ node, data }">
+                    <span>{{ data.question }}</span>
+                    <span>
+                      <el-button
+                        type="text"
+                        size="mini"
+                        icon="el-icon-plus"
+                        @click.stop="addAppend(data)">
+                      </el-button>
+                    </span>
+                  </span>
+                </el-tree>
+              </div>
+              <div class="boxLine">
+                <div class="lineMiddle"></div>
+              </div>
+              <div class="firstHot" ref="firstHot">
+                <h3 class="topTitle">热门知识TOP榜</h3>
+                <div v-if="isTopLoading" class="topLoadingBox" ref="topLoadingBox"> 
+                  <img src="./images/loading.gif" class="topLoading" alt="">
+                </div>
+                <div v-else class="topContent" ref="topContent">
+                  <ul class="topSpan">
+                    <li v-for="(item,index) in hotDatas" :key="item.question" @click="topClick(item)">
+                      <span> {{ item.question }} </span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="middleBox">
+              <div class="middleLine"></div>
+            </div>
+            <div class="rightBox">
+              <div class = "titleContent">
+                <div>
+                 <span class="questionName">问题名称</span>
+                </div>
+                <div style="margin-right:20px">
+                  <span style="line-height:34px;font-size: 14px;">反馈结果</span>
+                  <el-select v-model="value" placeholder="请选择" size="mini">
+                    <el-option
+                      v-for="item in options"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value"
+                      :disabled="item.disabled">
+                    </el-option>
+                  </el-select>
+                  <el-button type="primary" size="mini" @click="feedBackClick" :disabled = isDisabled >确定</el-button>
+              </div>
+            </div>
+              <!-- <textarea id="mytextarea" class="textBox">
+                <span style="color: red;">{{this.resultOneColor}}</span>
+                <a href="https://www.baidu.com/">https://www.baidu.com/</a>
+                3424234234
+              </textarea> -->
+              <div class="questionContent" v-html="answerContent">
+                {{answerContent}}
+              </div>
+            </div>
+          </div>
+        </el-collapse-transition>
+      </div>
+    </div>
+  </div>
+  <script src="js/plugins/tinymce/tinymce.min.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/vue.min.js"></script>
+  <script src="js/http/axios.min.js"></script>
+  <script src="js/http/qs.min.js"></script>
+  <script src="js/http/request.js"></script>
+  <script src="js/http/api.js"></script>
+  <script src="js/elementui.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/onlyview.js"></script>
+</body>
+
+</html>

@@ -36,35 +36,35 @@ class YunwenPath(BaseSettings):
 class QianxunPath(BaseSettings):
     warning: str = '/warning'
     result: str = "/recognizeResult/accessPoint"
-    call: str = "/"
+
+    # 获取坐席的最近通话信息
+    call: str = "/hawkeye/rest/v1/agentLatestCall/{agent_id}"
+
+    # 获取坐席账号信息
+    agent: str = "/hawkeye/rest/v1/match/user"
+
+    # color 高亮颜色信息展示
+    color: str = "/param"
 
 
 class Settings(BaseSettings):
     redis_dsn: RedisDsn = "redis://127.0.0.1:6379/1"
     mysql_dsn: MysqlDsn = "mysql+mysqldb://root:wawawa@127.0.0.1:43306/jiumu_helper"
+    # mysql_dsn: MysqlDsn = "mysql+pymysql://root:wawawa@127.0.0.1:43306/jiumu_helper"
+    log_file_path: DirectoryPath = BASE_DIR.joinpath('log')
+
+    # 外部接口: 云问相关配置
     app_id: str = "421vaOJ0JMyNVJ6kMA"
     secret: str = "10Ti5rvwTHPReO70512a1ec25"
     sys_num: int = 1621329960501
     source_id: int = 215
-    log_file_path: DirectoryPath = BASE_DIR.joinpath('log')
     client_id: str = "hjhj"
     yunwen_host: AnyUrl = "http://v5-gdc2-01.faqrobot.net"
-    yunwen_path2: dict = {
-        "search": "/chatbot/api/inputPrompt/{sys_num}",
-        "token": "/admin/token/getToken",
-        "intention": "/aiivr/ivr/v1/getVdnByPhone",
-        "intention_feedback": "/aiivr/third/v1/feedbackVdn",
-        "question": "/admin/private/jomoo/v1/getHotQuestion",
-        "answer": "/admin/private/jomoo/v1/getHotQuestionInfo",
-        "push": "/admin/private/jomoo/v1/addPushData",
-    }
     yunwen_path: YunwenPath = YunwenPath()
-    qianxun_host: AnyUrl = "http://127.0.0.1:8184"
-    qianxun_path2 = {
-        "warning": "/warning",
-        "result": "/recognizeResult/accessPoint",
-        "call": ""
-    }
+
+    # 内部接口: 千寻相关配置
+    qianxun_token: str = "b5a05a94-67c6-4965-8865-5436b20343e0"
+    qianxun_host: AnyUrl = "http://127.0.0.1:8186"
     qianxun_path: QianxunPath = QianxunPath()
 
     @classmethod
@@ -79,5 +79,7 @@ if __name__ == '__main__':
     print(yunwen.intention_feedback)
 
     # print(type(yunwen.intention_feedback[0]), settings.qianxun_path.warnings)
-    print(settings.qianxun_path.result)
-    print(BASE_DIR.joinpath('log'))
+    print(settings.qianxun_path.call.format(agent_id='12333'))
+
+    # print(Path().joinpath(settings.qianxun_host, settings.qianxun_path.call.format(agent_id=1234)))
+

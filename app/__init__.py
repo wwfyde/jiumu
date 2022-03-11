@@ -2,9 +2,14 @@ import logging
 
 from app.core.config import settings
 
-FORMAT = '%(levelname)s: %(asctime)s %(message)s'
+FORMAT = '%(levelname)s %(asctime)s %(module)s %(lineno)d' \
+         ' %(message)s %(filename)s %(name)s'
+
+# 'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s %(pathname)s %(name)s'
+
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-handler = logging.FileHandler(filename=settings.log_file_path.joinpath('jiumu.log'), encoding='utf-8')
+handler = logging.FileHandler(
+    filename=settings.log_file_path.joinpath('jiumu.log'), encoding='utf-8')
 formatter = logging.Formatter(FORMAT)
 handler.setFormatter(formatter)
 log = logging.getLogger(__name__)

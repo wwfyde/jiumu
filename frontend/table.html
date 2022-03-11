@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" type="text/css" href="css/table.css" />
+  </link>
+  <link rel="stylesheet" href="css/theme-chalk/index.css">
+  <link rel="stylesheet" href="css/elementui.css">
+  <title></title>
+</head>
+
+<body>
+  <div id="app" v-cloak>
+    <div class="content">
+      <div class="tableHeader">
+        <div class="wordTitle">业务统计报表</div>
+        <div>
+          <span class="zxNameStyle">坐席姓名</span>
+          <el-input v-model="zxName" placeholder="请输入内容" size="small" style="width:200px;margin-right: 10px;"></el-input>
+          <el-button type="primary" size="small" @click="searchList">搜索</el-button>
+          <el-button type="primary" size="small" @click="exportTable">导出</el-button>
+        </div>
+      </div>
+      <div class="tableBody">
+        <el-table
+          class="tableee"
+          ref = "table"
+          :height = 'tableHeight'
+          :data="tableData.slice((currentPage-1)*pagesize,currentPage*pagesize)"
+          border
+          :default-sort = "{prop: '坐席姓名', order: 'descending'}"
+          :header-cell-style="{background: '#79CF85',color: '#000',borderColor: 'red'}"
+          >
+          <template v-for="(header,index) in headers">
+          <el-table-column
+            :prop = 'header'
+            :label = 'header'
+            width = '150'
+            sortable>
+          </el-table-column>
+          </template>
+        </el-table>
+      </div>
+      <div class="tableFoot">
+        <el-pagination
+          @current-change="handleCurrentChange"
+          :current-page="currentPage"
+          :page-sizes="[10]"
+          :page-size="10"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="tableData.length">
+        </el-pagination>
+      </div>
+    </div>
+  </div>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/vue.min.js"></script>
+  <script src="js/http/axios.min.js"></script>
+  <script src="js/http/qs.min.js"></script>
+  <script src="js/http/request.js"></script>
+  <script src="js/http/api.js"></script>
+  <script src="js/elementui.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/table.js"></script>
+</body>
+
+</html>

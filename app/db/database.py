@@ -27,3 +27,5 @@ if __name__ == '__main__':
     log.info("连接成功")
     print(cur.fetchone())
     pass
+    db = SessionLocal()
+
