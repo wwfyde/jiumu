@@ -32,6 +32,11 @@ class YunwenPath(BaseSettings):
     top: str = "/admin/private/jomoo/v1/getHotQuestion"
     push: str = "/admin/private/jomoo/v1/addPushData"
 
+    # 语音流地址
+    call_stream: str = "/hawkeye/rest/v1/stomp?userToken={user_token}"
+    # 订阅队列
+    call_queue: str = "/topic/result/{agent_id}"
+
 
 class QianxunPath(BaseSettings):
     warning: str = '/warning'
@@ -49,7 +54,9 @@ class QianxunPath(BaseSettings):
 
 class Settings(BaseSettings):
     redis_dsn: RedisDsn = "redis://127.0.0.1:6379/1"
-    mysql_dsn: MysqlDsn = "mysql+mysqldb://root:wawawa@127.0.0.1:43306/jiumu_helper"
+    mysql_dsn: MysqlDsn = "mysql+mysqldb://root:wawawa@127.0.0.1:43306" \
+                          "/jiumu_helper?charset=utf8mb4"
+
     # mysql_dsn: MysqlDsn = "mysql+pymysql://root:wawawa@127.0.0.1:43306/jiumu_helper"
     log_file_path: DirectoryPath = BASE_DIR.joinpath('log')
 
@@ -63,8 +70,8 @@ class Settings(BaseSettings):
     yunwen_path: YunwenPath = YunwenPath()
 
     # 内部接口: 千寻相关配置
-    qianxun_token: str = "b5a05a94-67c6-4965-8865-5436b20343e0"
-    qianxun_host: AnyUrl = "http://127.0.0.1:8186"
+    qianxun_token: str = "72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94"
+    qianxun_host: AnyUrl = "http://192.168.129.176:8186"
     qianxun_path: QianxunPath = QianxunPath()
 
     @classmethod

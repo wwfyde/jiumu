@@ -1,7 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, \
-    Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -40,7 +39,7 @@ class Intention(Base):
     # phone = Column(String(16), comment="手机号")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")
 
 
@@ -60,7 +59,7 @@ class Reminder(Base):
     phone = Column(String(16), comment="客户手机号")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")
 
     ring_time = Column(DateTime, comment="响铃时间")
@@ -95,7 +94,7 @@ class WarningEventMessage(Base):
     phone = Column(String(16), comment="客户手机号")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")
 
     # time = Column(DateTime, nullable=False, comment="提醒时间")
@@ -136,6 +135,7 @@ class ResultEventMessage(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     event = Column(String(16), default="newCall", comment="通话事件标识")
     call_id = Column(String(64), comment="通话ID")
+    speech_id = Column(String(64), comment="通话ID")
     source = Column(String(64), comment="识别结果所属来源")
     result = Column(String(3000), comment="识别结果")
 
@@ -166,7 +166,7 @@ class HangupEventMessage(Base):
     # time = Column(DateTime, nullable=False, comment="提醒时间")
     # phone = Column(String(16), comment="客户手机号")
     #
-    # update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    # update_time = Column(DateTime, onupdate=datetime.datetime.now(),
     #                      comment="更新时间")
     #
     # agent_account = Column(String(32), comment="坐席分析系统账号")
@@ -205,6 +205,7 @@ class CallSentence(Base):
 
 class Call(Base):
     """
+    通话信息记录
     当 产生新的意图时, 更新通话的意图和意图号
 
     """
@@ -213,12 +214,18 @@ class Call(Base):
     call_id = Column(String(64), unique=True, comment="通话流水号")
     agent = Column(String(64), nullable=False, comment="坐席号")
     agent_name = Column(String(64), comment="坐席姓名")
-    # intention = Column(Integer, ForeignKey('intention.id'), comment="意图号")
+    intention_id = Column(Integer, comment="意图号")
+    intention_name = Column(String(64), comment="意图名称")
     phone = Column(String(16), comment="手机号")
+    caller = Column(String(16), comment="主叫号码")
+    called = Column(String(16), comment="被叫号码")
+    direction = Column(String(16), comment="呼叫方向")
     call_time = Column(DateTime, comment="通话时间")
+    duration = Column(Integer, comment="通话时长")
+    ring_time = Column(DateTime, comment="响铃时间")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")
     # questions = relationship("Call", secondary=call_question, back_populates="calls")
     # questions = relationship("Call")
@@ -226,14 +233,14 @@ class Call(Base):
 
 class Question(Base):
     """
-    问题列表, 没当检索到一条问题, 就创建一条问题
+    问题列表, 每当检索到一条问题, 就创建一条问题
     """
     pass
     __tablename__ = "question"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    qid = Column(Integer, unique=True, nullable=True, comment="问题ID", )
+    gid = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, unique=True, nullable=True, comment="问题ID/知识ID", )
     name = Column(String(64), primary_key=True, unique=True, comment="问题名称")
-    knowledge_id = Column(Integer, unique=True, nullable=False, comment="知识ID")
+    # knowledge_id = Column(Integer, unique=True, nullable=False, comment="知识ID")
     domain = Column(Integer, comment="所属知识库ID")
     type = Column(Integer, comment="问题类型")
     source = Column(Integer, comment="问题来源")
@@ -241,7 +248,7 @@ class Question(Base):
     feedback = Column(Integer, comment="反馈状态")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")
     # calls = relationship('Question', secondary=call_question, back_populates="questions")
 
@@ -253,12 +260,18 @@ class CallQuestion(Base):
     __tablename__ = "call_question"
     gid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     question = Column(String(64), nullable=False, comment="问题名称")
+    question_id = Column(String(64), nullable=False, comment="问题ID")
+    question_source = Column(Integer, nullable=False, default=0, comment="问题来源")
     call_id = Column(String(64), nullable=False, comment="通话ID")
+    agent = Column(String(16), comment="坐席ID")
     # intention = Column(Integer, ForeignKey('intenion'), nullable=False, comment="意图名称")
-    intention_id = Column(Integer, nullable=False, comment="意图号")
-    intention_name = Column(String(128), nullable=False, comment="意图名称")
+    intention_id = Column(Integer, comment="意图号")
+    intention_name = Column(String(128), comment="意图名称")
+    phone = Column(String(16), comment="客户手机号码")
     create_time = Column(DateTime, default=datetime.datetime.now(),
                          nullable=False, comment="创建时间")
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+                         comment="更新时间")
 
 
 class Feedback(Base):
@@ -280,7 +293,7 @@ class Demo(Base):
     type = Column(Boolean(), default=True)
     date = Column(DateTime, )
     desc = Column(String(64))
-    create_time = Column(DateTime, default=datetime.datetime.now,
+    create_time = Column(DateTime, default=datetime.datetime.now(),
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
                          comment="更新时间")

@@ -13,7 +13,8 @@ from app.db import log
 SQLALCHEMY_DATABASE_URL = settings.mysql_dsn
 
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={}
+    SQLALCHEMY_DATABASE_URL, connect_args={},
+    echo=True
 )
 log.info("初始化数据库引擎")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

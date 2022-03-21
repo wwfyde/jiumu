@@ -30,3 +30,19 @@ INFO: 2022-03-02 16:23:10,606 获取token成功, 直接从redis读取
 INFO: 2022-03-02 16:24:59,546 获取token成功, 直接从redis读取
 INFO: 2022-03-02 16:26:46,638 获取token成功, 直接从redis读取
 INFO: 2022-03-02 16:28:04,536 获取token成功, 直接从redis读取
+ERROR: 2022-03-14 10:23:18,136 获取token失败,请求接口失败! 错误提示: [Errno Expecting value] <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+: 0
+ERROR: 2022-03-14 15:02:35,933 获取token失败,请求接口失败! 错误提示: [Errno Expecting value] <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+: 0

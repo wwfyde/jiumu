@@ -1,15 +1,17 @@
+import json
 import logging
 from datetime import datetime
 
 from typing import Optional, List, Union
 
+import redis
 import requests
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-from starlette.requests import Request
-from starlette.responses import StreamingResponse
+from starlette.background import BackgroundTasks
+from starlette.responses import HTMLResponse
 from uvicorn import run
-from fastapi import FastAPI, Query, Depends, Body
+from fastapi import FastAPI, Query, Depends, Body, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 # from fastapi.staticfiles import StaticFiles
@@ -19,11 +21,12 @@ from pydantic import BaseModel
 from app import log
 # from app.config1 import config
 from app.core.config import settings
-from app.db.database import engine
+from app.db.database import engine, SessionLocal
 from app.dependencies import get_db
-from app.inner.qianxun import get_agent_info, get_color_info
-from app.outer.yunwen import get_token, push_question_feedback
+from app.inner.qianxun import get_agent_info, get_color_info, subscribe_speech_stream, get_recent_call
+from app.outer.yunwen import get_token, push_question_feedback, search_question, get_intention_outer
 from app.db import models, crud, schemas
+from app.utils.stomp import parse_frame
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -83,6 +86,8 @@ def top(intention: str) -> dict:
     :param intention:
     :return:
     """
+    question_list = []
+
     try:
 
         url = settings.yunwen_host + settings.yunwen_path.top
@@ -93,8 +98,8 @@ def top(intention: str) -> dict:
         }).json()
         log.debug(resp)
         if resp.get('code') == 1:
+            log.debug("获取TOP成功")
             raw_question_list: list = resp.get('data').get('questionList')
-            question_list = []
             for questions in raw_question_list:
                 question_list.append(questions)
         else:
@@ -106,6 +111,9 @@ def top(intention: str) -> dict:
         log.error(f"接口连接失败, 错误提示 {exc}")
 
     return {
+        "code": 1,
+        "message": "success",
+        "data": question_list,
 
     }
 
@@ -115,51 +123,15 @@ def search(question: str) -> dict:
     """
      agent: Optional[str], call_id: Optional[str]
     根据搜索框获取问题标准答案
+    此时不需要获取存入数据库
     :param question:
     :param agent: 坐席ID
     :param call_id: 通话流水号
     :return:
     """
+    # TODO 搜索问题时标记问题来源
+    data: list = search_question(question, source=1)
 
-    try:
-        url: str = settings.yunwen_host + settings.yunwen_path.search.format(
-            sys_num=settings.sys_num)
-        resp: dict = requests.get(url, params={
-            "access_token": get_token(),
-            "sourceId": settings.source_id,
-            "clientId": settings.client_id,
-            "question": question,
-        }).json()
-
-        if resp.get('code') == 1:
-            log.info(f"搜索标准问题成功, 内容: {resp}")
-            raw_data: list = resp.get('data').get('items')
-            data = []
-            if raw_data:
-                for raw_question in raw_data:
-                    #
-                    crud.get_question()
-                    data.append(dict(knowledge_id=raw_question.get('itemId'),
-                                     question=raw_question.get('content'),
-                                     question_desc=raw_question.get(
-                                         'showContent')))
-            else:
-                log.info("未搜索到标准问题")
-        else:
-            log.error("接口返回了错误的信息,")
-            return {
-                "code": 3,
-                "message": "failed",
-                "data": [],
-            }
-    except requests.exceptions.ConnectionError as exc:
-        log.error("请求云问接口失败! 请检查接口是否连通")
-        return {
-            "code": 2,
-            "message": "error",
-            "data": "",
-
-        }
     return {
         "code": 1,
         "message": "success",
@@ -170,39 +142,95 @@ def search(question: str) -> dict:
 
 
 @app.get("/question", description="获取问题列表")
-def get_question(call_id: str,
-                 intention: str,
-                 db: Session = Depends(get_db)
-                 ):
+def get_questions(call_id: str,
+                  intention: Union[int, str],
+                  agent: Union[int, str],
+                  db: Session = Depends(get_db)
+                  ):
+    """
+    根据语音流获取问题列表
+    :param agent:
+    :param call_id:
+    :param intention:
+    :param db:
+    :return:
+    """
+    questions = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == call_id,
+                                                     models.CallQuestion.agent == agent,
+                                                     models.CallQuestion.intention_id == intention
+                                                     ).order_by(desc(models.CallQuestion.create_time)).all()
+
+    log.info(f"问题列表:{questions}")
+
     # TODO 获取问题列表的方式
     return {
         "code": 1,
         "message": "success",
-        "data": ''
+        "data": questions
     }
 
 
 @app.post("/question", description="增加问题")
-def create_question(question: str,
-                    call_id: str,
-                    intention: str,
-                    knowledge_id: int,
-                    question_id: Optional[int] = None,
+def create_question(question: schemas.CallQuestion,
                     db: Session = Depends(get_db)
                     ):
-    db_question = models.Question(call_id=call_id,
-                                  intention=intention,
-                                  name=question,
-                                  qid=question_id,
-                                  knowledge_id=knowledge_id
-                                  )
+    """
+    手动
+    :param question:
+    :param db:
+    :return:
+    """
+    db_question = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == question.call_id,
+                                                       models.CallQuestion.agent == question.agent_id,
+                                                       models.CallQuestion.intention_id == question.intention,
+                                                       models.CallQuestion.question == question.question
+                                                       ).first()
+    db_question_full = models.CallQuestion(call_id=question.call_id,
+                                           intention_id=question.intention,
+                                           intention_name=question.intention_name,
+                                           agent=question.agent_id,
+                                           question_id=question.knowledge_id,
+                                           question=question.question,
+                                           question_source=question.source,
+                                           )
+    if not db_question:
+        db.add(db_question_full)
+        db.commit()
+        db.refresh(db_question_full)
+        log.info(f"agent:{question.agent_id},添加问题成功, 问体来源: 标准问题搜索, 问题名称: {question.question}")
+    else:
+        log.warning("该问题已经存在, 将不会添加到列表中")
 
-    db.add(db_question)
+    return {
+        "code": 1,
+        "message": "success",
+        "data": db_question_full,
+        "status": True,
+
+    }
     pass
 
 
 @app.delete("/question", description="删除问题")
-def delete_question():
+def delete_question(question: schemas.CallQuestion, db: Session = Depends(get_db)):
+    db_question = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == question.call_id,
+                                                       models.CallQuestion.agent == question.agent_id,
+                                                       models.CallQuestion.intention_id == question.intention,
+                                                       models.CallQuestion.question == question.question
+                                                       ).first()
+    if db_question:
+        db.delete(db_question)
+        db.commit()
+        log.info("删除问题成功: ")
+    else:
+        log.warning("问题不存在, 删除失败")
+
+    return {
+        "code": 1,
+        "message": "success",
+        "data": db_question,
+        "status": True
+    }
     pass
 
 
@@ -235,7 +263,23 @@ def get_answer(question: str,
             data: list = []
 
             # TODO 记录该问题被点击
+            db_question: models.Question = db.query(models.Question).filter(models.Question.name == question).first()
+            if db_question:
+                db_question.access_times += 1
+                db.commit()
+                db.refresh(db_question)
+                log.debug(f"问题: {question}被访问, 记录访问状态+1")
 
+                # 将问题点击事件推送到云问
+                push_status = push_question_feedback(db_question.id, 1)
+                if push_status:
+                    log.info("问题点击状态推送到云问成功")
+                else:
+                    log.warning("推送问题点击状态")
+            else:
+                log.warning(f"问题: {question}, 未被后端记录")
+
+            # 拼接知识答案
             for raw_answer in raw_data:
                 data.append(dict(
                     seed_question=raw_answer["seedQuestion"],
@@ -268,8 +312,16 @@ def get_answer(question: str,
 
 
 @app.get("/reminder", description="预警提醒")
-def get_reminder():
-    return {}
+def get_reminder(call_id: str, db: Session = Depends(get_db)):
+    # TODO 获取最新的预警信息
+    db_reminder = db.query(models.WarningEventMessage).filter(
+        models.WarningEventMessage.call_id == call_id).order_by(desc(models.WarningEventMessage.create_time)).all()
+
+    return {
+        'code': 1,
+        "message": "success",
+        "data": db_reminder,
+    }
 
 
 @app.get("/intention", description="意图获取")
@@ -281,46 +333,47 @@ def get_intention(phone: str = Query(..., title="手机号", max_length=16),
     # 根据坐席ID 获取手机号和通话ID 并存储到数据库
 
     # 访问第三方接口, 并将数据存储到数据库
-    try:
-        url = settings.yunwen_host + settings.yunwen_path.intention
-        resp: dict = requests.request(method='GET', url=url, params={
-            'phone': phone,
-            "sysNum": settings.sys_num,
-            "access_token": get_token(),
-        }).json()
-
-        if resp['code'] == 1:
-            log.info("意图获取成功")
-            data = resp['data']
-            pass
-    except Exception as exc:
-        log.error(f"请求第三方接口失败, 错误提示: {exc}")
+    intention_id, intention_name = get_intention_outer(phone)
+    if intention_id and intention_name:
+        pass
         return {
-            'code': 2,
-            'message': 'error',
-            "data": ''
+            "code": 1,
+            "message": "success",
+            "data": {
+                'id': intention_id,
+                'name': intention_name
+            },
         }
-
-    # 根据agent 获取 通话ID和客户手机号
-    db.query(models.Intention).filter(
-        models.Intention.agent == agent).order_by(
-        desc(models.Intention.read_time))
-    return {
-        "code": 1,
-        "message": "success",
-        "data": data,
-    }
+    else:
+        return {
+            "code": 2,
+            "message": "error",
+            "data": {},
+        }
 
 
 @app.get("/call", description="来电统计")
-def get_call_times(phone: str, db: Session = Depends(get_db)):
+def get_call_times(phone: str, agent: Union[int, str], db: Session = Depends(get_db)):
     # 获取url
     url = settings.qianxun_host + settings.qianxun_path.call
-    data = dict(today='', month='')
+
+    # 根据挂断事件获取
+    today = db.query(models.HangupEventMessage).filter(models.HangupEventMessage.agent_id == str(agent),
+                                                       models.HangupEventMessage.call_time.date()
+                                                       == datetime.today().date()).all()
+    month = db.query(models.Call).filter(models.HangupEventMessage.agent_id == str(agent),
+                                         models.HangupEventMessage.call_time.date().year
+                                         == datetime.today().date().year,
+                                         models.HangupEventMessage.call_time.date().month
+                                         == datetime.today().date().month,
+                                         ).all()
     return {
         "code": 1,
         "message": "success",
-        "data": data
+        "data": {
+            'today': len(today),
+            'month': len(month)
+        }
 
     }
 
@@ -516,20 +569,102 @@ def receive_hangup_event(
     db.add(db_hangup)
     db.commit()
     db.refresh(db_hangup)
-    for model in data['hitModels']:
-        db_call_model = models.CallModel(
-            hangup_id=db_hangup.id,
-            call_id=data['callId'],
-            model_name=model['modelName'],
-            hit_word=model['hitWords'])
-        db.add(db_call_model)
-        db.commit()
-        db.refresh(db_call_model)
-    log.info("接收推送消息成功, 并记录到数据库")
+    if data.get('hitModels'):
+        for model in data['hitModels']:
+            db_call_model = models.CallModel(
+                hangup_id=db_hangup.id,
+                call_id=data['callId'],
+                model_name=model['modelName'],
+                hit_word=model['hitWords'])
+            db.add(db_call_model)
+            db.commit()
+            db.refresh(db_call_model)
+    else:
+        log.error("配置未开启! 未推送模型命中、确认关键词结果")
+    log.info(f"接收挂断事件成功, 并记录到数据库! {data}")
     pass
     return {
         "functionResult": "SUCCESS",
         "message": "accepted"
+    }
+
+
+def on_speech_stream(msg: str):
+    """
+    回调时间, 用于解析数据库
+    :param db:
+    :param msg:
+    :return:
+    """
+    print("正在订阅")
+    print("MESSAGE: " + msg)
+    command, header, body = parse_frame(msg)
+    # command, header, body = ('MESSAGE', {}, msg)
+
+    if command == "MESSAGE":
+        speech_stream: dict = json.loads(body)
+
+        if speech_stream['status'] == 'continue':
+
+            # 根据呼叫方向确定客户号码
+            phone = speech_stream['callFromNumber'] if speech_stream['direction'] == 'inbound' \
+                else speech_stream['callToNumber']
+
+            # 获取意图
+            intention_id, intention_name = get_intention_outer(phone)
+
+            for raw_message in speech_stream['messages']:
+                if raw_message['type'] == 'text':
+                    text: str = raw_message['info']['text']
+                    #  查询问题知识库
+                    questions: list = search_question(text, source=2)
+                    # questions: list = [
+                    #     {'question': '测试', 'knowledge_id': 1243},
+                    #     {'question': '测试2', 'knowledge_id': 12434},
+                    # ]
+
+                    # TODO 将问题列表添加到数据库
+                    for question in questions:
+                        db_question = models.CallQuestion(question=question['question'],
+                                                          question_id=question['knowledge_id'],
+                                                          question_source=2,
+                                                          call_id=speech_stream['callId'],
+                                                          agent=speech_stream['agentId'],
+                                                          intention_id=intention_id,
+                                                          intention_name=intention_name,
+                                                          phone=phone)
+                        db: Session = SessionLocal()
+                        log.info("添加问题到数据库")
+                        db.add(db_question)
+                        db.commit()
+                        db.refresh(db_question)
+
+    elif command == "CONNECTED":
+        pass
+    else:
+        pass
+
+
+@app.get("/speech_stream")
+async def receive_speech_stream(agent: str, intention: str, background_tasks: BackgroundTasks,
+                                db: Session = Depends(get_db)):
+    log.info(f"正在获取坐席:{agent}下的实时语音流信息")
+    # msg = """{"agentId":"9999","callId":"eb4da0f8-0ddb-4b07-aa3e-5e18bacad2eb",
+    # "direction":"inbound","extension":"9999","callFromNumber":"1****000","callToNumber":"999","beginTime":"2022-03-18
+    # 13:50:27","status":"continue","messages":[{"type":"text","info":{"decided":false,"role":"customer",
+    # "duration":56052,"text":"是吧你告诉他","time":"55260,56052","index":23,"offset":0,"wordBeginTime":55260,
+    # "wordEndTime":56052}}]}"""
+
+    # on_speech_stream(msg=msg)
+    # subscribe_speech_stream(agent, on_speech_stream)
+    background_tasks.add_task(subscribe_speech_stream, agent, on_speech_stream)
+    log.info("创建后台任务成功")
+
+    return {
+        "code": 1,
+        "message": "success",
+        "data": '',
+        "status": True
     }
 
 
@@ -583,14 +718,92 @@ def update_demo(demo: schemas.Demo, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/base_info/{agent}")
-def get_base_info(agent: Union[str, int]):
-    pass
-    return {}
+@app.get("/call_info/{agent}")
+def get_call_info(agent: Union[str, int], db: Session = Depends(get_db)):
+    """
+    根据坐席获取用户的基础信息
+    :param db:
+    :param agent:
+    :return:
+    """
+    # 获取
+    info: dict = get_recent_call(agent)
+    # 示例
+
+    # dict(agent=resp['data']['latestCall']['agentId'],
+    #      agent_number=resp['data']['latestCall']['agentNumber'],
+    #      direction=resp['data']['latestCall']['callDirection'],
+    #      caller=resp['data']['latestCall']['callFromNumber'],
+    #      called=resp['data']['latestCall']['callToNumber'],
+    #      phone=resp['data']['latestCall']['customerNumber'],
+    #      call_id=resp['data']['latestCall']['callId'],
+    #      call_time=resp['data']['latestCall']['callTime'],
+    #      ring_time=resp['data']['latestCall']['ringTime'],
+    #      extension=resp['data']['latestCall']['extension'],
+    #      duration=resp['data']['latestCall']['duration'],
+    #      extra_info=resp['data']['latestCall']['extraInfo'],
+    #      is_online=resp['data']['online']
+    #      )
+    if info:
+        # 获取账号意图
+        intention_id, intention_name = get_intention_outer(info['phone'])
+
+        r = redis.from_url(settings.redis_dsn, decode_responses=True)
+        r.hset(info['call_id'], 'agent', info['agent'])
+        r.hset(info['call_id'], 'agent_number', info['agent_number'])
+        r.hset(info['call_id'], 'direction', info['direction'])
+        r.hset(info['call_id'], 'caller', info['caller'])
+        r.hset(info['call_id'], 'called', info['called'])
+        r.hset(info['call_id'], 'phone', info['phone'])
+        r.hset(info['call_id'], 'call_id', info['call_id'])
+        r.hset(info['call_id'], 'call_time', info['call_time'])
+        r.hset(info['call_id'], 'ring_time', info['ring_time'])
+        r.hset(info['call_id'], 'extension', info['extension'])
+        r.hset(info['call_id'], 'duration', info['duration'])
+        r.hset(info['call_id'], 'extra_info', info['extra_info'])
+        r.hset(info['call_id'], 'is_online', info['is_online'])
+        r.hset(info['call_id'], 'intention_id', intention_id)
+        r.hset(info['call_id'], 'intention_name', intention_name)
+        db_call = models.Call(
+            agent=info['agent'],
+            caller=info['caller'],
+            called=info['called'],
+            direction=info['direction'],
+            duration=int(info['duration']) if info['duration'] else 0,
+            phone=info['phone'],
+            call_id=info['call_id'],
+            intention_id=intention_id,
+            intention_name=intention_name,
+            call_time=datetime.strptime(info['call_time'], '%Y-%m-%d %H:%M:%S') if info['call_time'] else None,
+            ring_time=datetime.strptime(info['ring_time'], '%Y-%m-%d %H:%M:%S') if info['ring_time'] else None,
+        )
+        exists = db.query(models.Call).filter(models.Call.call_id == info['call_id']).first()
+        if not exists:
+            log.info(f"根据坐席ID: {agent}获取通话{info}信息成功")
+            db.add(db_call)
+            db.commit()
+            db.refresh(db_call)
+        else:
+            log.debug("通话信息已存在无须再次插入")
+            pass
+
+        return {
+            'code': 1,
+            'message': 'success',
+            'data': db_call,
+        }
+    else:
+
+        log.error(f"获取坐席: {agent}最近通话信息失败!")
+        return {
+            'code': 1,
+            'message': 'success',
+            'data': {},
+        }
 
 
 @app.get("/caller")
-def get_call_info(agent: str):
+def get_call_info2(agent: str):
     """
     获取当前通话的相关信息
     :param agent:
@@ -611,7 +824,66 @@ def get_call_info(agent: str):
 # @app.get("/demo_stream")
 # async def main():
 #     return StreamingResponse(fake_video_streamer())
+html = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Chat</title>
+    </head>
+    <body>
+        <h1>WebSocket Chat</h1>
+        <form action="" onsubmit="sendMessage(event)">
+            <input type="text" id="messageText" autocomplete="off"/>
+            <button>Send</button>
+        </form>
+        <ul id='messages'>
+        </ul>
+        <script>
+            var ws = new WebSocket("ws://127.0.0.1:8188/ws");
+            ws.onmessage = function(event) {
+                var messages = document.getElementById('messages')
+                var message = document.createElement('li')
+                var content = document.createTextNode(event.data)
+                message.appendChild(content)
+                messages.appendChild(message)
+            };
+            function sendMessage(event) {
+                var input = document.getElementById("messageText")
+                ws.send(input.value)
+                input.value = ''
+                event.preventDefault()
+            }
+        </script>
+    </body>
+</html>
+"""
+
+
+@app.get("/ws_demo")
+async def ws_client():
+    return HTMLResponse(html)
+
+
+@app.websocket("/recognition_event")
+async def ws_server(websocket: WebSocket, ):
+    """
+    接收客户事件推送
+    :param websocket:
+    :return:
+    """
+    await websocket.accept()
+    while True:
+        data: dict = await websocket.receive_json()
+        # TODO 解析语音流信息, 并存储到数据库
+        if data['']:
+            pass
+        log.info(f"接收信息成功:{data}")
+        await websocket.send_text(f"Message text was: {type(data)}")
 
 
 if __name__ == "__main__":
     run(app='main:app', reload=True, port=8199, workers=4)
+    pass
+    # db: Session = Depends(get_db)
+    # data = db.query(models.Demo)
+    # print(data)

@@ -759,3 +759,321 @@ INFO 2022-03-11 11:18:56,488 main 30 初始化数据库表成功! main.py app
 ERROR 2022-03-11 11:19:08,085 qianxun 35 其他接口错误, 错误提示: Expecting value: line 1 column 1 (char 0) qianxun.py app
 ERROR 2022-03-11 11:19:08,093 qianxun 63 其他接口错误, 错误提示: Expecting value: line 1 column 1 (char 0) qianxun.py app
 INFO 2022-03-11 11:19:08,138 main 528 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-11 17:47:48,304 __init__ 17 日志配置成功 __init__.py app
+ERROR 2022-03-11 17:47:48,427 qianxun 31 账号信息获取不成功! 错误代码: NOT_EXISTS qianxun.py app
+ERROR 2022-03-11 17:47:48,507 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 17:47:59,814 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 17:47:59,956 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 17:48:00,036 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 17:48:44,501 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 17:48:44,617 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 17:48:44,694 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 17:49:09,950 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 17:49:10,081 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 17:49:10,165 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 18:08:40,442 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 18:08:40,560 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 18:08:40,641 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 18:18:39,994 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 18:18:46,315 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 18:18:46,446 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 18:18:46,524 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-11 18:21:59,340 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-11 18:21:59,457 qianxun 22 获取坐席信息成功! qianxun.py app
+ERROR 2022-03-11 18:21:59,536 qianxun 57 颜色信息获取不成功! 错误代码: UNAUTHORIZED qianxun.py app
+INFO 2022-03-14 09:43:08,215 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 09:43:08,349 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 09:43:08,445 qianxun 60 获取颜色信息成功! 颜色信息: {'id': 'HawkEye.HighLight.ExtractedColor', 'type': 'color', 'default': '#ff1f1f', 'value': '#ff1f1f', 'display': '抓取的关键词的高亮颜色(以十六进制表示)'} qianxun.py app
+INFO 2022-03-14 09:43:15,136 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 09:43:15,246 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 10:15:33,014 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 10:18:00,615 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 10:18:01,248 main 30 初始化数据库表成功! main.py app
+ERROR 2022-03-14 10:23:18,136 yunwen 57 获取token失败,请求接口失败! 错误提示: [Errno Expecting value] <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+: 0 yunwen.py app.outer
+ERROR 2022-03-14 10:23:18,238 main 149 接口返回了错误的信息, main.py app
+INFO 2022-03-14 10:23:26,802 main 556 数据已经存在, 将不会提交或更新 main.py app
+INFO 2022-03-14 14:34:24,864 main 556 数据已经存在, 将不会提交或更新 main.py app
+INFO 2022-03-14 14:35:08,919 main 556 数据已经存在, 将不会提交或更新 main.py app
+INFO 2022-03-14 14:36:04,041 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:36:04,052 qianxun 54 颜色信息已过期从 qianxun.py app
+INFO 2022-03-14 14:36:04,143 qianxun 61 获取颜色信息成功! 颜色信息: {'id': 'HawkEye.HighLight.ExtractedColor', 'type': 'color', 'default': '#ff1f1f', 'value': '#ff1f1f', 'display': '抓取的关键词的高亮颜色(以十六进制表示)'} qianxun.py app
+INFO 2022-03-14 14:36:04,174 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:37:11,206 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:37:11,210 qianxun 51 从redis读取颜色信息 qianxun.py app
+INFO 2022-03-14 14:37:11,236 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:37:26,821 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:37:26,832 qianxun 51 从redis读取颜色信息 qianxun.py app
+INFO 2022-03-14 14:37:26,859 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:38:09,548 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:38:09,554 qianxun 51 从redis读取颜色信息 qianxun.py app
+INFO 2022-03-14 14:38:09,580 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:38:32,711 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:38:32,715 qianxun 51 从redis读取颜色信息 qianxun.py app
+INFO 2022-03-14 14:38:32,737 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:38:47,643 main 556 数据已经存在, 将不会提交或更新 main.py app
+INFO 2022-03-14 14:38:47,811 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 14:38:47,816 qianxun 51 从redis读取颜色信息 qianxun.py app
+INFO 2022-03-14 14:38:47,841 main 484 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 14:57:31,595 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 14:57:32,493 main 30 初始化数据库表成功! main.py app
+ERROR 2022-03-14 15:02:35,933 yunwen 57 获取token失败,请求接口失败! 错误提示: [Errno Expecting value] <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+: 0 yunwen.py app.outer
+ERROR 2022-03-14 15:02:36,012 main 149 接口返回了错误的信息, main.py app
+INFO 2022-03-14 21:00:52,320 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:00:53,179 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-14 21:01:23,469 main 563 数据已经存在, 将不会提交或更新 main.py app
+INFO 2022-03-14 21:01:33,690 main 561 新建数据成功! main.py app
+INFO 2022-03-14 21:02:01,339 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:02:01,458 qianxun 23 获取坐席信息成功! qianxun.py app
+INFO 2022-03-14 21:02:01,462 qianxun 54 颜色信息已过期从 qianxun.py app
+INFO 2022-03-14 21:02:01,558 qianxun 61 获取颜色信息成功! 颜色信息: {'id': 'HawkEye.HighLight.ExtractedColor', 'type': 'color', 'default': '#ff1f1f', 'value': '#ff1f1f', 'display': '抓取的关键词的高亮颜色(以十六进制表示)'} qianxun.py app
+INFO 2022-03-14 21:03:06,274 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:03:07,349 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:03:08,138 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-14 21:04:21,985 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:04:22,167 qianxun 24 获取坐席信息成功! qianxun.py app.inner
+INFO 2022-03-14 21:04:22,170 qianxun 52 从redis读取颜色信息 qianxun.py app.inner
+INFO 2022-03-14 21:04:23,022 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:04:23,540 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-14 21:05:09,786 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:05:10,316 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:05:10,929 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-14 21:05:56,848 qianxun 24 获取坐席信息成功! qianxun.py app.inner
+INFO 2022-03-14 21:05:56,874 qianxun 52 从redis读取颜色信息 qianxun.py app.inner
+INFO 2022-03-14 21:05:56,925 main 491 接收推送消息成功, 并记录到数据库 main.py app
+INFO 2022-03-14 21:18:14,187 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-14 21:18:14,992 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 08:28:14,817 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 08:28:16,009 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 08:29:46,513 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 08:29:47,223 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 09:12:06,282 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 09:12:06,937 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 11:12:50,276 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:53:21,288 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:53:22,177 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 15:54:33,742 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:54:34,502 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 15:56:50,317 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:56:51,247 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 15:58:32,581 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:58:33,439 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 15:58:45,642 main 668 1111122 main.py app
+INFO 2022-03-15 15:59:24,920 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 15:59:25,621 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 15:59:30,382 main 668 接收信息成功:122434 main.py app
+INFO 2022-03-15 16:00:46,344 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:00:48,563 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:01:08,259 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:01:08,906 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:01:55,969 main 669 接收信息成功:12344 main.py app
+INFO 2022-03-15 16:02:21,229 main 669 接收信息成功:{'data': 123} main.py app
+INFO 2022-03-15 16:02:34,833 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:02:36,866 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:03:35,572 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:03:36,171 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:03:42,814 main 669 接收信息成功:{'data': 123} main.py app
+INFO 2022-03-15 16:06:11,462 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:06:13,142 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:10:04,879 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:10:06,417 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 16:10:37,740 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 16:10:38,484 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:05:28,129 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:05:28,936 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:06:43,377 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:06:43,946 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:07:39,051 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:07:39,617 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:11:32,180 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:11:33,775 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:11:50,802 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:15:00,372 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:15:00,961 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:16:58,662 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:16:59,361 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:17:23,420 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:17:23,991 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:18:40,894 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:18:41,389 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:19:31,442 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:19:32,105 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:21:15,654 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:21:16,607 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:22:38,038 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:22:38,813 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:23:14,623 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:23:15,150 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:23:17,942 main 191 SELECT call_question.gid AS call_question_gid, call_question.question AS call_question_question, call_question.question_id AS call_question_question_id, call_question.question_source AS call_question_question_source, call_question.call_id AS call_question_call_id, call_question.agent AS call_question_agent, call_question.intention_id AS call_question_intention_id, call_question.intention_name AS call_question_intention_name, call_question.create_time AS call_question_create_time, call_question.update_time AS call_question_update_time 
+FROM call_question 
+WHERE call_question.call_id = %s ORDER BY call_question.create_time DESC main.py app
+INFO 2022-03-15 21:27:23,449 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:27:23,993 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:27:28,871 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:27:29,372 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:27:34,232 main 191 SELECT call_question.gid AS call_question_gid, call_question.question AS call_question_question, call_question.question_id AS call_question_question_id, call_question.question_source AS call_question_question_source, call_question.call_id AS call_question_call_id, call_question.agent AS call_question_agent, call_question.intention_id AS call_question_intention_id, call_question.intention_name AS call_question_intention_name, call_question.create_time AS call_question_create_time, call_question.update_time AS call_question_update_time 
+FROM call_question 
+WHERE call_question.call_id = %s AND call_question.agent = %s AND call_question.intention_id = %s ORDER BY call_question.create_time DESC main.py app
+INFO 2022-03-15 21:28:23,879 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:28:24,407 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:28:28,800 main 191 问题列表:SELECT call_question.gid AS call_question_gid, call_question.question AS call_question_question, call_question.question_id AS call_question_question_id, call_question.question_source AS call_question_question_source, call_question.call_id AS call_question_call_id, call_question.agent AS call_question_agent, call_question.intention_id AS call_question_intention_id, call_question.intention_name AS call_question_intention_name, call_question.create_time AS call_question_create_time, call_question.update_time AS call_question_update_time 
+FROM call_question 
+WHERE call_question.call_id = %s AND call_question.agent = %s AND call_question.intention_id = %s ORDER BY call_question.create_time DESC main.py app
+INFO 2022-03-15 21:29:22,962 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:29:23,630 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:29:29,036 main 191 问题列表:SELECT call_question.gid AS call_question_gid, call_question.question AS call_question_question, call_question.question_id AS call_question_question_id, call_question.question_source AS call_question_question_source, call_question.call_id AS call_question_call_id, call_question.agent AS call_question_agent, call_question.intention_id AS call_question_intention_id, call_question.intention_name AS call_question_intention_name, call_question.create_time AS call_question_create_time, call_question.update_time AS call_question_update_time 
+FROM call_question 
+WHERE call_question.call_id = %s AND call_question.agent = %s AND call_question.intention_id = %s ORDER BY call_question.create_time DESC main.py app
+INFO 2022-03-15 21:30:51,330 main 191 问题列表:SELECT call_question.gid AS call_question_gid, call_question.question AS call_question_question, call_question.question_id AS call_question_question_id, call_question.question_source AS call_question_question_source, call_question.call_id AS call_question_call_id, call_question.agent AS call_question_agent, call_question.intention_id AS call_question_intention_id, call_question.intention_name AS call_question_intention_name, call_question.create_time AS call_question_create_time, call_question.update_time AS call_question_update_time 
+FROM call_question 
+WHERE call_question.call_id = %s AND call_question.agent = %s AND call_question.intention_id = %s ORDER BY call_question.create_time DESC main.py app
+INFO 2022-03-15 21:30:52,226 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:30:53,162 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:31:19,952 main 191 问题列表:[<app.db.models.CallQuestion object at 0x106f89f60>, <app.db.models.CallQuestion object at 0x106f89f00>] main.py app
+INFO 2022-03-15 21:31:20,772 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:31:21,942 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:31:49,865 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:31:50,520 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:31:55,589 main 191 问题列表:[<app.db.models.CallQuestion object at 0x1097f1f60>, <app.db.models.CallQuestion object at 0x1097f1f00>] main.py app
+INFO 2022-03-15 21:32:49,702 main 191 问题列表:[<app.db.models.CallQuestion object at 0x1097f2aa0>, <app.db.models.CallQuestion object at 0x1097f37c0>] main.py app
+INFO 2022-03-15 21:33:59,511 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:34:00,441 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:35:29,615 main 191 问题列表:[<app.db.models.CallQuestion object at 0x10bbfece0>, <app.db.models.CallQuestion object at 0x10bbfed70>, <app.db.models.CallQuestion object at 0x10bbfec50>, <app.db.models.CallQuestion object at 0x10bbfebf0>, <app.db.models.CallQuestion object at 0x10bbfea40>, <app.db.models.CallQuestion object at 0x10bbfe9e0>, <app.db.models.CallQuestion object at 0x10bbfe920>, <app.db.models.CallQuestion object at 0x10bbfe6e0>] main.py app
+INFO 2022-03-15 21:38:23,839 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:38:24,482 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:39:20,415 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:39:20,953 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:39:49,867 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:39:50,395 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:50:42,706 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:50:43,193 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 21:58:55,706 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 21:58:56,494 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 22:00:53,874 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:00:54,499 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 22:01:25,180 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:01:25,683 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 22:04:26,707 main 241 删除问题成功:  main.py app
+INFO 2022-03-15 22:04:41,448 main 241 删除问题成功:  main.py app
+INFO 2022-03-15 22:04:44,076 main 241 删除问题成功:  main.py app
+INFO 2022-03-15 22:06:00,678 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:10:33,645 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:10:34,475 main 30 初始化数据库表成功! main.py app
+WARNING 2022-03-15 22:10:48,385 main 230 该问题已经存在, 将不会添加到列表中 main.py app
+INFO 2022-03-15 22:10:58,147 main 228 agent:2345,添加问题成功, 问体来源: 标准问题搜索, 问题名称: 测试2 main.py app
+WARNING 2022-03-15 22:11:15,807 main 230 该问题已经存在, 将不会添加到列表中 main.py app
+WARNING 2022-03-15 22:11:18,616 main 230 该问题已经存在, 将不会添加到列表中 main.py app
+INFO 2022-03-15 22:11:54,853 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:11:55,405 main 30 初始化数据库表成功! main.py app
+INFO 2022-03-15 22:19:59,869 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:20:00,522 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-15 22:25:31,378 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-15 22:25:31,854 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 08:37:47,629 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:37:48,497 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 08:46:44,310 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:49:28,490 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:49:28,975 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 08:51:04,553 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:51:05,388 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 08:52:23,449 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:52:23,970 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 08:53:18,299 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 08:53:18,810 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:20:52,429 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:20:53,119 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:27:09,923 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:27:10,488 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:29:39,066 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:29:40,278 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:29:41,769 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:29:43,057 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:30:01,407 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:30:02,004 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:31:09,582 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:31:52,028 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:31:52,606 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:33:11,900 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:33:12,473 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:39:21,975 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:39:22,504 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:45:52,832 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:45:53,427 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:53:22,208 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:53:23,495 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 09:56:49,149 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 09:56:49,673 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 18:21:41,943 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 18:21:42,282 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 18:21:42,730 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-16 18:21:42,977 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-16 18:21:43,065 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-20 21:18:59,077 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-20 21:18:59,835 main 29 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:15:32,512 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:15:32,938 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:16:17,423 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:16:17,655 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:40:26,147 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:40:26,658 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:42:45,107 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:42:45,701 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:42:45,722 main 637 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 14:45:02,265 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:45:02,813 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:45:08,325 main 637 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 14:47:52,214 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:47:52,726 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:48:03,985 main 637 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 14:49:51,231 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:49:51,718 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:55:09,863 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:55:10,456 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:55:19,864 main 638 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 14:55:54,988 main 638 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 14:55:55,716 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:55:56,206 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:56:54,382 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:56:54,986 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:57:01,521 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 14:57:02,016 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 14:57:06,108 main 638 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:03:05,667 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:03:06,156 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:03:17,927 main 642 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:05:45,243 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:05:45,705 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:05:52,127 main 642 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:05:52,134 main 628 添加问题到数据库 main.py app
+INFO 2022-03-21 15:07:21,022 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:07:21,573 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:07:25,434 main 642 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:07:25,441 main 629 添加问题到数据库 main.py app
+INFO 2022-03-21 15:11:20,363 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:11:20,826 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:13:40,165 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:13:40,725 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:13:45,896 main 642 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:13:45,903 main 629 添加问题到数据库 main.py app
+INFO 2022-03-21 15:14:30,573 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:14:31,067 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 15:14:38,001 main 642 正在获取坐席:9999下的实时语音流信息 main.py app
+INFO 2022-03-21 15:14:38,013 main 629 添加问题到数据库 main.py app
+INFO 2022-03-21 15:14:38,030 main 629 添加问题到数据库 main.py app
+INFO 2022-03-21 15:17:52,282 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 15:17:52,835 main 31 初始化数据库表成功! main.py app
+INFO 2022-03-21 18:01:35,632 __init__ 17 日志配置成功 __init__.py app
+INFO 2022-03-21 18:01:36,374 main 33 初始化数据库表成功! main.py app

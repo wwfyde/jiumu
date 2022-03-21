@@ -1,13 +1,110 @@
-
+#Method Request-URI HTTP-Version
+#Header-field: Header-value
+#
+#Request-Body
 
 # Test your FastAPI endpoints
-
-GET http://127.0.0.1:8000/
+###
+# @name = root api
+GET http://127.0.0.1:8188/
 Accept: application/json
+
+### 请求名称
+
+POST http://127.0.0.1:8188/items/1
+Accept: application/json
+
+
+###
+# 测试提交接口
+POST http://127.0.0.1:8188/demo
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "测试222",
+    "type": false,
+    "desc": "这是测试"
+}
 
 ###
 
-GET http://127.0.0.1:8000/items/1
+# @name = 预警推送接口
+POST http://127.0.0.1:8188/warning_event
+Content-Type: application/json
 Accept: application/json
 
-###
+{
+    "warningNotificationList": [
+        {
+            "agentId": "1000",
+            "callId": "8c6d5237-a08c-4a71-adfd-df0a0ee37af0",
+            "modelName": "欢迎",
+            "warningName": "欢迎",
+            "hitSentences": [
+                {
+                    "text": "啊看欢迎致电玫赛德斯奔驰道路救援很高兴为您服务",
+                    "role": "A",
+                    "index": 0
+                }
+            ],
+            "warning": true,
+            "flyScreen": false,
+            "customerNum": "110000",
+            "modelId": 335,
+            "callTime": "2019-09-11 13:58:32"
+        }
+    ]
+}
+
+### 颜色获取
+GET http://192.168.129.176:8186/param?userToken=72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94&id=HawkEye.HighLight.ExtractedColor
+Accept: application/json
+
+userToken=72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94&id=HawkEye.HighLight.ExtractedColor
+
+
+### 标准问题搜索
+
+GET http://127.0.0.1:8188/search?question=测试
+Accept: application/json
+
+### 增加问题
+POST  http://127.0.0.1:8188/question
+Content-Type: application/json
+Accept: application/json
+
+{
+    "call_id": "8c6d5237-a08c-4a71-adfd-df0a0ee37af0",
+    "agent_id": 2345,
+    "intention": 1001,
+    "intention_name": "马桶",
+    "question": "测试2",
+    "knowledge_id": 1234
+}
+
+### 删除问题
+DELETE  http://127.0.0.1:8188/question
+Content-Type: application/json
+Accept: application/json
+
+{
+    "call_id": "8c6d5237-a08c-4a71-adfd-df0a0ee37af0",
+    "agent_id": 2345,
+    "intention": 1001,
+    "intention_name": "马桶",
+    "question": "测试",
+    "knowledge_id": 1234
+}
+
+### 查询问题列表
+GET http://127.0.0.1:8188/question?intention=1001&agent=2345&call_id=8c6d5237-a08c-4a71-adfd-df0a0ee37af0
+Accept: application/json
+
+### 获取预警提醒
+GET http://127.0.0.1:8188/reminder?call_id=8c6d5237-a08c-4a71-adfd-df0a0ee37af0
+Accept: application/json
+
+### 获取实时语音流并查询问题
+GET http://127.0.0.1:8188/speech_stream?agent=9999&intention=12343
+Accept: application/json

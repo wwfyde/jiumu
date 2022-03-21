@@ -53,16 +53,24 @@ class Feedback(BaseModel):
     agent: Union[int, str]
 
 
-class Question(BaseModel):
+class CallQuestion(BaseModel):
     question: str
     knowledge_id: int
     intention: int
-    agent: Union[int, str] | None = None
+    call_id: str
+    agent_id: int
+    intention_name: str
+    source: Optional[int] = 1
+
+
+class Question(BaseModel):
+    id: int
+    name: str
 
 
 class QuestionCreate(Question):
-    create_time: str | None = None
-    update_time: str | None = None
+    create_time: Optional[str] = None
+    update_time: Optional[str] = None
 
 
 class QuestionFeedback(Question):
@@ -70,6 +78,6 @@ class QuestionFeedback(Question):
 
 
 class QuestionStatistics(Question):
-    access_times: int | None = None
+    access_times: Optional[int] = None
 
 

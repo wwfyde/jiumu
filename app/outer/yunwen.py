@@ -1,9 +1,12 @@
+from typing import Optional, Union
+
 import aioredis
 import redis
 import requests
 
 # from ..config1 import config
 from app.core.config import settings
+from app.db import crud
 from app.outer import log
 
 
@@ -61,7 +64,7 @@ def get_token(fresh: bool = False) -> str:
         return token
 
 
-def push_question_feedback(knowledge_id: int, types: int, feedback: int) -> bool:
+def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int] = None) -> bool:
 
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.push
@@ -81,6 +84,69 @@ def push_question_feedback(knowledge_id: int, types: int, feedback: int) -> bool
     except Exception as exc:
         log.error(f"请求第三方接口失败! 错误提示: {exc}")
         return False
+
+
+def search_question(question: str, source: int = 1):
+    """
+
+    :param question: 搜索问题
+    :param source:
+    :return:
+    """
+    data = []
+    try:
+        url: str = settings.yunwen_host + settings.yunwen_path.search.format(
+            sys_num=settings.sys_num)
+        resp: dict = requests.get(url, params={
+            "access_token": get_token(),
+            "sourceId": settings.source_id,
+            "clientId": settings.client_id,
+            "question": question,
+        }).json()
+
+        if resp.get('code') == 1:
+            log.info(f"搜索标准问题成功, 内容: {resp}")
+            raw_data: list = resp.get('data').get('items')
+
+            if raw_data:
+                for raw_question in raw_data:
+                    #
+                    crud.get_question()
+                    data.append(dict(knowledge_id=raw_question.get('itemId'),
+                                     question=raw_question.get('content'),
+                                     question_desc=raw_question.get(
+                                         'showContent')))
+            else:
+                log.info("未搜索到标准问题")
+        else:
+            log.error("接口返回了错误的信息,")
+
+    except requests.exceptions.ConnectionError as exc:
+        log.error("请求云问接口失败! 请检查接口是否连通")
+
+    return data
+
+
+def get_intention_outer(phone: Union[int, str]):
+    id: Optional[int] = None
+    name: Optional[str] = ''
+    try:
+        url = settings.yunwen_host + settings.yunwen_path.intention
+        resp: dict = requests.request(method='GET', url=url, params={
+            'phone': phone,
+            "sysNum": settings.sys_num,
+            "access_token": get_token(),
+        }).json()
+
+        if resp['code'] == 1:
+            log.info("意图获取成功")
+            id = resp['data']['vdnNo']
+            name = resp['data']['vdnName']
+
+            pass
+    except Exception as exc:
+        log.error(f"请求第三方接口失败, 错误提示: {exc}")
+    return id, name
 
 
 if __name__ == '__main__':
