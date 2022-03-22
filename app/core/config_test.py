@@ -61,12 +61,12 @@ class Settings(BaseSettings):
     log_file_path: DirectoryPath = BASE_DIR.joinpath('log')
 
     # 外部接口: 云问相关配置
-    app_id: str = "60skkEemTb1bSppG2z"
-    secret: str = "10oi7HbWYbI88y2ef80dd4db4"
-    sys_num: int = 1645755108284
-    source_id: int = 129
+    app_id: str = "421vaOJ0JMyNVJ6kMA"
+    secret: str = "10Ti5rvwTHPReO70512a1ec25"
+    sys_num: int = 1621329960501
+    source_id: int = 215
     client_id: str = "hjhj"
-    yunwen_host: AnyUrl = "http://10.222.26.19"
+    yunwen_host: AnyUrl = "http://v5-gdc2-01.faqrobot.net"
     yunwen_path: YunwenPath = YunwenPath()
 
     # 内部接口: 千寻相关配置
