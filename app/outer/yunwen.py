@@ -57,7 +57,7 @@ def get_token(fresh: bool = False) -> str:
                 token = ''
 
         except Exception as exc:
-            log.error(f"获取token失败,请求接口失败! 错误提示: {exc}")
+            log.error(f"获取token失败,请求接口失败! 错误提示: {exc}, Exception类型: {type(exc)}")
 
             token = ''
 

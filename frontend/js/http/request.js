@@ -1,6 +1,8 @@
 // 假数据
-const baseUrl = 'https://www.fastmock.site/mock/36329655758cd689742ae22a1a1b5b2d/intention'
-// const baseUrl = "http://192.168.128.82:8188"
+// const baseUrl = 'https://www.fastmock.site/mock/36329655758cd689742ae22a1a1b5b2d/intention'
+// TODO 服务器地址配置
+// const baseUrl = "http://10.222.26.183:8188"
+const baseUrl = "http://127.0.1:8188"
 const qs = Qs
 // 响应时间
 // axios.defaults.timeout = 40000

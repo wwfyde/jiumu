@@ -7,6 +7,7 @@ var vm = new Vue({
         phone: '13733334444', // 来电手机号
         agent: "23567", // 坐席ID
         intention: 1001, // 进线意图号码
+        intention_name: '马桶维修', // 进线意图号码
         call_id: '01'
       },
       defaultProps: {
@@ -141,6 +142,22 @@ var vm = new Vue({
           this.getTopQuestion()
         }
         this.isLoading = false
+      }).catch(err => {
+        console.log(err);
+      })
+    },
+    // 来电统计信息
+    getCallInfoData() {
+      getCallInfo({
+        agent: this.allParams.agent
+      }).then(res => {
+        let resData = res.data
+        if (resData.code === 1) {
+          this.allParams.call_id = resData.data.call_id
+          this.allParams.phone = resData.data.phone
+          this.allParams.intention = resData.data.intention_id
+          this.allParams.intention_name = resData.data.intention_name
+        }
       }).catch(err => {
         console.log(err);
       })

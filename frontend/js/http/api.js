@@ -5,6 +5,11 @@ function getIntention(data) {
   return fetch_GET('/intention', data)
 }
 
+// 通话信息
+function getCallInfo(data) {
+  return fetch_GET('/call_info', data)
+}
+
 // 来电统计接口
 function getCallRecord(data) {
   return fetch_GET('/call', data)
@@ -52,7 +57,7 @@ function getTableChart(data) {
 
 // 导出报表
 function getchartExport() {
-  return fetch_GET('/chartt/export', data)
+  return fetch_GET('/chart/export', data)
 }
 
 // 问题反馈结果提交

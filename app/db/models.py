@@ -85,7 +85,7 @@ class WarningEventMessage(Base):
     call_id = Column(String(64), comment="通话ID")
     call_time = Column(DateTime, comment="来电时间")
     model_name = Column(String(64), comment="模型名称")
-    model_id = Column(Integer, comment="模型名称")
+    model_id = Column(Integer, comment="模型ID")
     warning_name = Column(String(64), comment="提醒名称")
     reminder_id = Column(String(64), comment="提醒ID")
     warning = Column(Boolean, comment="是否预警类型")

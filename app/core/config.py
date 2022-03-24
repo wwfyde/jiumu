@@ -54,11 +54,12 @@ class QianxunPath(BaseSettings):
 
 class Settings(BaseSettings):
     redis_dsn: RedisDsn = "redis://127.0.0.1:6379/1"
-    mysql_dsn: MysqlDsn = "mysql+mysqldb://root:wawawa@127.0.0.1:43306" \
+    mysql_dsn: MysqlDsn = "mysql+pymysql://root:admin@127.0.0.1:3306" \
                           "/jiumu_helper?charset=utf8mb4"
 
     # mysql_dsn: MysqlDsn = "mysql+pymysql://root:wawawa@127.0.0.1:43306/jiumu_helper"
     log_file_path: DirectoryPath = BASE_DIR.joinpath('log')
+    xlsx_file_path: DirectoryPath = BASE_DIR.joinpath('xlsx')
 
     # 外部接口: 云问相关配置
     app_id: str = "60skkEemTb1bSppG2z"
@@ -70,8 +71,8 @@ class Settings(BaseSettings):
     yunwen_path: YunwenPath = YunwenPath()
 
     # 内部接口: 千寻相关配置
-    qianxun_token: str = "72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94"
-    qianxun_host: AnyUrl = "http://192.168.129.176:8186"
+    qianxun_token: str = "38f6cf95-2282-4b5b-b457-42dd1bfedc99"
+    qianxun_host: AnyUrl = "http://127.0.0.1:8186"
     qianxun_path: QianxunPath = QianxunPath()
 
     @classmethod

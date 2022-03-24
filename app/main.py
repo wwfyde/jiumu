@@ -6,6 +6,7 @@ from typing import Optional, List, Union
 
 import redis
 import requests
+import xlsxwriter
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTasks
@@ -434,26 +435,124 @@ async def recognition_result():
     return {}
 
 
-@app.get("/chart/statistics")
-def chart_statistics():
+@app.get("/chart/count")
+def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
+    """
+    报表统计当
+    :param date: 指定统计哪一天的报表
+    :param db: 数据库依赖
+    :return:
+    """
     # 获取坐席姓名
     agent_id = 12345
     agent_info = get_agent_info(agent_id)
+    today = datetime.today().date()
 
-    if agent_info:
-        log.info("获取坐席姓名成功")
-        name = agent_info['name']
-    else:
-        log.warning("未获取到用户姓名, 将以坐席ID代替")
-        name = agent_id
+    # 获取当天所有通话
+    db_call = db.query(models.HangupEventMessage).filter(models.HangupEventMessage.call_time.date()
+                                                         == today)
 
-    return {}
+    # 获取所有的坐席
+    pass
+
+    # 获取所有预警和提醒的名称
+    db_reminder: Query = db.query(models.WarningEventMessage).filter(models.WarningEventMessage.call_time.date()
+                                                                     == today)
+
+    warnings, reminders = [], []
+    for event in db_reminder:  # event models.WarningEventMessage
+        if event.warning:
+            if event.warning_name not in warnings:
+                warnings.append(event.warning_name)
+        else:
+            if event.warning_name not in reminders:
+                reminders.append(event.warning_name)
+
+    # 构造headers
+    headers = ['坐席姓名', '坐席ID', '通话总数', '提醒总数', '预警总数']
+
+    for reminder in reminders:
+        headers.append(f'提醒_{reminder}')
+    for warning in warnings:
+        headers.append(f'预警_{warning}')
+    log.info(f"headers: {headers}")
+
+    # 获取所有当天有通话的坐席
+    agents = []
+    for agent in db_call:
+        if [agent.agent_name, agent.agent_id] not in agents:
+            agents.append([agent.agent_name, agent.agent_id])
+
+    # 统计坐席的所有数据
+    data = []
+
+    for row in agents:
+        # 处理每个坐席的数据统计
+        item = {
+            headers[0]: row[0],
+            headers[1]: row[1],
+            headers[2]: db_call.filter(models.HangupEventMessage.agent_id == row[1]).count(),
+            headers[3]: db_reminder.filter(models.WarningEventMessage.warning is False).count(),
+            headers[4]: db_reminder.filter(models.WarningEventMessage.warning is True).count(),
+        }
+        # 获取 通话总数
+        for index, column in enumerate(headers[5:]):
+            if column[:2] == "提醒":
+                item[headers[4 + index]] = db_reminder.filter(models.WarningEventMessage.warning_name
+                                                              == column[3:]).count()
+                pass
+
+            else:
+                item[headers[4 + index]] = db_reminder.filter(models.WarningEventMessage.warning_name
+                                                              == column[3:]).count()
+
+        # 将 item 条件 data 中
+        data.append(item)
+
+    # 将文件写入
+    file_path = settings.xlsx_file_path.joinpath(f"{today.strftime('%Y-%m-%d')}.xlsx")
+    workbook = xlsxwriter.Workbook(file_path)
+    worksheet = workbook.add_worksheet()
+    statistics: list = [row for row in data]
+    statistics.insert(0, headers)
+
+    for index, row in enumerate(statistics):
+        worksheet.write_row(index, 0, row)
+
+    workbook.close()
+
+    return {
+        "code": 1,
+        "message": "success",
+        "data": {
+            "headers": headers,
+            "data": data
+        }
+    }
 
 
-# 响应文件
-@app.post("/chart/export")
-def export_chart():
-    file_path = "file.md"
+@app.get("/chart/export")
+def export_chart(date: Optional[str] = None, agent: Optional[Union[int, str]] = None):
+    """
+    将传入的数据生成xlsx文件
+    :return:
+    """
+    today = datetime.today().date().strftime('%Y-%m-%d')
+
+    # 获取当天的xlsx文件路径
+    file_path = settings.xlsx_file_path.joinpath(f"{today}.xlsx")
+
+    # 用于测试
+    data = [(1,2,3),(4, 5, 6)]
+    headers = ('一', '二', '三')
+    workbook = xlsxwriter.Workbook(file_path)
+    worksheet = workbook.add_worksheet()
+    statistics: list = [row for row in data]
+    statistics.insert(0, headers)
+    for index, row in enumerate(statistics):
+        worksheet.write_row(index, 0, row)
+
+    workbook.close()
 
     return FileResponse(file_path)
 
@@ -555,7 +654,8 @@ def receive_hangup_event(
         agent_name=multi_agent_info['name'] if multi_agent_info else None,
         account=data['account'],
         extension=data['extension'],
-        ring_time=data['ringTime'],
+        ring_time=data['ringTime'].strptime(data["ringTime"],
+                                            '%Y-%m-%d %H:%M:%S') if data["ringTime"] else None,
         call_id=data["callId"],
         direction=data['direction'],
         total_time=data['duration'],
@@ -718,7 +818,7 @@ def update_demo(demo: schemas.Demo, db: Session = Depends(get_db)):
     }
 
 
-@app.get("/call_info/{agent}")
+@app.get("/call_info")
 def get_call_info(agent: Union[str, int], db: Session = Depends(get_db)):
     """
     根据坐席获取用户的基础信息
