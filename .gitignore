@@ -1,6 +1,10 @@
 venv/
 venv3.8/
 .idea/
+### log
+*.log
+*.xlsx
+
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/

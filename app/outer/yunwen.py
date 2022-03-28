@@ -53,7 +53,7 @@ def get_token(fresh: bool = False) -> str:
                 token = data.get('accessToken')
                 r.set("token", token, ex=60*60)
             else:
-                log.error(f"获取token失败, 接口返回了错误的提示, 错误代码: {resp.get('code')}")
+                log.error(f"获取token失败, 错误代码: {resp.get('code')}, 错误提示: {resp.get('message')}")
                 token = ''
 
         except Exception as exc:

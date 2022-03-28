@@ -7,7 +7,7 @@ from typing import Optional, List, Union
 import redis
 import requests
 import xlsxwriter
-from sqlalchemy import desc
+from sqlalchemy import desc, func, extract
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTasks
 from starlette.responses import HTMLResponse
@@ -144,8 +144,8 @@ def search(question: str) -> dict:
 
 @app.get("/question", description="获取问题列表")
 def get_questions(call_id: str,
-                  intention: Union[int, str],
                   agent: Union[int, str],
+                  intention: Optional[Union[int, str]] = None,
                   db: Session = Depends(get_db)
                   ):
     """
@@ -158,7 +158,7 @@ def get_questions(call_id: str,
     """
     questions = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == call_id,
                                                      models.CallQuestion.agent == agent,
-                                                     models.CallQuestion.intention_id == intention
+                                                     # models.CallQuestion.intention_id == intention
                                                      ).order_by(desc(models.CallQuestion.create_time)).all()
 
     log.info(f"问题列表:{questions}")
@@ -264,7 +264,9 @@ def get_answer(question: str,
             data: list = []
 
             # TODO 记录该问题被点击
-            db_question: models.Question = db.query(models.Question).filter(models.Question.name == question).first()
+            db_question: models.Question = db.query(models.Question).filter(
+                models.Question.name == question
+            ).first()
             if db_question:
                 db_question.access_times += 1
                 db.commit()
@@ -316,7 +318,10 @@ def get_answer(question: str,
 def get_reminder(call_id: str, db: Session = Depends(get_db)):
     # TODO 获取最新的预警信息
     db_reminder = db.query(models.WarningEventMessage).filter(
-        models.WarningEventMessage.call_id == call_id).order_by(desc(models.WarningEventMessage.create_time)).all()
+        models.WarningEventMessage.call_id == call_id
+    ).order_by(
+        desc(models.WarningEventMessage.create_time)
+    ).all()
 
     return {
         'code': 1,
@@ -354,26 +359,27 @@ def get_intention(phone: str = Query(..., title="手机号", max_length=16),
 
 
 @app.get("/call", description="来电统计")
-def get_call_times(phone: str, agent: Union[int, str], db: Session = Depends(get_db)):
+def get_call_times(agent: Union[int, str], phone: Optional[str] = None, db: Session = Depends(get_db)):
     # 获取url
     url = settings.qianxun_host + settings.qianxun_path.call
 
     # 根据挂断事件获取
-    today = db.query(models.HangupEventMessage).filter(models.HangupEventMessage.agent_id == str(agent),
-                                                       models.HangupEventMessage.call_time.date()
-                                                       == datetime.today().date()).all()
-    month = db.query(models.Call).filter(models.HangupEventMessage.agent_id == str(agent),
-                                         models.HangupEventMessage.call_time.date().year
-                                         == datetime.today().date().year,
-                                         models.HangupEventMessage.call_time.date().month
-                                         == datetime.today().date().month,
-                                         ).all()
+    today = db.query(models.HangupEventMessage).filter(
+        models.HangupEventMessage.agent_id == str(agent),
+        func.date(models.HangupEventMessage.call_time) == datetime.today().date()
+    ).count()
+    month = db.query(models.HangupEventMessage).filter(
+        models.HangupEventMessage.agent_id == str(agent),
+        extract('year', models.HangupEventMessage.call_time) == datetime.today().date().year,
+        extract('month', models.HangupEventMessage.call_time) == datetime.today().date().month,
+    ).count()
+
     return {
         "code": 1,
         "message": "success",
         "data": {
-            'today': len(today),
-            'month': len(month)
+            'today': today,
+            'month': month
         }
 
     }
@@ -390,8 +396,9 @@ def question_feedback(feedback: schemas.Feedback,
     """
 
     # 如果已经反馈过则不需要再次反馈
-    exists = db.query(models.Feedback).filter_by(
-        question=feedback.question).first()
+    exists = db.query(models.Feedback).filter(
+        models.Feedback.question == feedback.question
+    ).first()
     log.debug(f"查询结果: {exists}")
     if not exists:
         log.info("提交反馈成功")
@@ -444,27 +451,30 @@ def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
     :return:
     """
     # 获取坐席姓名
-    agent_id = 12345
-    agent_info = get_agent_info(agent_id)
+    # agent_id = 12345
+    # agent_info = get_agent_info(agent_id)
     today = datetime.today().date()
 
     # 获取当天所有通话
-    db_call = db.query(models.HangupEventMessage).filter(models.HangupEventMessage.call_time.date()
-                                                         == today)
+    db_call = db.query(models.HangupEventMessage).filter(
+        func.date(models.HangupEventMessage.call_time) == today)
 
     # 获取所有的坐席
     pass
 
     # 获取所有预警和提醒的名称
-    db_reminder: Query = db.query(models.WarningEventMessage).filter(models.WarningEventMessage.call_time.date()
-                                                                     == today)
+    db_reminder: Query = db.query(models.WarningEventMessage).filter(
+        func.date(models.WarningEventMessage.call_time) == today)
 
     warnings, reminders = [], []
     for event in db_reminder:  # event models.WarningEventMessage
         if event.warning:
+            log.info(event.warning)
             if event.warning_name not in warnings:
                 warnings.append(event.warning_name)
         else:
+            log.info(f"提醒:{event.warning}")
+
             if event.warning_name not in reminders:
                 reminders.append(event.warning_name)
 
@@ -483,8 +493,10 @@ def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
         if [agent.agent_name, agent.agent_id] not in agents:
             agents.append([agent.agent_name, agent.agent_id])
 
+    log.debug(f"坐席列表: {agents}")
+
     # 统计坐席的所有数据
-    data = []
+    data: List[dict] = []
 
     for row in agents:
         # 处理每个坐席的数据统计
@@ -492,19 +504,28 @@ def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
             headers[0]: row[0],
             headers[1]: row[1],
             headers[2]: db_call.filter(models.HangupEventMessage.agent_id == row[1]).count(),
-            headers[3]: db_reminder.filter(models.WarningEventMessage.warning is False).count(),
-            headers[4]: db_reminder.filter(models.WarningEventMessage.warning is True).count(),
+            headers[3]: db_reminder.filter(
+                models.WarningEventMessage.agent_id == row[1],
+                models.WarningEventMessage.warning is False
+            ).count(),
+            headers[4]: db_reminder.filter(
+                models.WarningEventMessage.agent_id == row[1],
+                models.WarningEventMessage.warning
+            ).count(),
         }
-        # 获取 通话总数
+        # 获取 提醒/预警总数
         for index, column in enumerate(headers[5:]):
             if column[:2] == "提醒":
-                item[headers[4 + index]] = db_reminder.filter(models.WarningEventMessage.warning_name
-                                                              == column[3:]).count()
-                pass
+                item[headers[5 + index]] = db_reminder.filter(
+                    models.WarningEventMessage.agent_id == row[1],
+                    models.WarningEventMessage.warning_name == column[3:]
+                ).count()
 
             else:
-                item[headers[4 + index]] = db_reminder.filter(models.WarningEventMessage.warning_name
-                                                              == column[3:]).count()
+                item[headers[5 + index]] = db_reminder.filter(
+                    models.WarningEventMessage.agent_id == row[1],
+                    models.WarningEventMessage.warning_name == column[3:]
+                ).count()
 
         # 将 item 条件 data 中
         data.append(item)
@@ -513,8 +534,19 @@ def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
     file_path = settings.xlsx_file_path.joinpath(f"{today.strftime('%Y-%m-%d')}.xlsx")
     workbook = xlsxwriter.Workbook(file_path)
     worksheet = workbook.add_worksheet()
-    statistics: list = [row for row in data]
+
+    # 将字典转换为列表
+    statistics: list = []
+
+    for data_item in data:
+        container = []
+        for key in headers:
+            container.append(data_item[key])
+        statistics.append(container)
+
     statistics.insert(0, headers)
+
+    log.debug(f"表格二维表: {statistics}")
 
     for index, row in enumerate(statistics):
         worksheet.write_row(index, 0, row)
@@ -543,7 +575,7 @@ def export_chart(date: Optional[str] = None, agent: Optional[Union[int, str]] = 
     file_path = settings.xlsx_file_path.joinpath(f"{today}.xlsx")
 
     # 用于测试
-    data = [(1,2,3),(4, 5, 6)]
+    data = [(1, 2, 3), (4, 5, 6)]
     headers = ('一', '二', '三')
     workbook = xlsxwriter.Workbook(file_path)
     worksheet = workbook.add_worksheet()
@@ -776,7 +808,9 @@ def get_demo(demo: Optional[str] = None, db: Session = Depends(get_db)):
 
 @app.post("/demo")
 def create_demo(demo: schemas.Demo, db: Session = Depends(get_db)):
-    exists = db.query(models.Demo).filter_by(name=demo.name).first()
+    exists = db.query(models.Demo).filter(
+        models.Demo.name == demo.name
+    ).first()
 
     if not exists:
 

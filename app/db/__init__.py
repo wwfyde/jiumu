@@ -6,7 +6,7 @@ from app.core.config import settings
 def get_logger():
     log_format = '%(levelname)s %(asctime)s %(module)s %(lineno)d' \
              ' %(message)s %(filename)s %(name)s'
-    logging.basicConfig(format=log_format, level=logging.WARN)
+    logging.basicConfig(format=log_format, level=logging.ERROR)
     handler = logging.FileHandler(filename=settings.log_file_path.joinpath('database.log'), encoding='utf-8')
     formatter = logging.Formatter(log_format)
     handler.setFormatter(formatter)
