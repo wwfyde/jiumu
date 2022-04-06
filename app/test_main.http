@@ -37,8 +37,8 @@ Accept: application/json
 {
     "warningNotificationList": [
         {
-            "agentId": "1000",
-            "callId": "8c6d5237-a08c-4a71-adfd-df0a0ee37af0",
+            "agentId": "9999",
+            "callId": "1234",
             "modelName": "欢迎",
             "warningName": "欢迎",
             "hitSentences": [

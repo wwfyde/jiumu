@@ -1,12 +1,9 @@
 from pathlib import Path
 
 from pydantic import (
-    BaseModel,
     BaseSettings,
-    BaseConfig,
     RedisDsn,
     AnyUrl,
-    FilePath,
     DirectoryPath,
 
 )
@@ -23,19 +20,30 @@ class MysqlDsn(AnyUrl):
 
 
 class YunwenPath(BaseSettings):
+
+    # 问题搜索
     search: str = "/chatbot/api/inputPrompt/{sys_num}"
+
+    # 知识搜索
     answer: str = "/chatbot/api/v5/chat/{sys_num}"
+
+    # 获取token
     token: str = "/admin/token/getToken"
-    intention: str = "/aiivr/ivr/v1/getVdnByPhone"
-    intention_feedback: str = "/aiivr/third/v1/feedbackVdn"
-    question: str = "/admin/private/jomoo/v1/getHotQuestion"
-    top: str = "/admin/private/jomoo/v1/getHotQuestion"
+
+    # 获取意图
+    intention: str = "/aiivr/third/v1/getVdnByPhone"
+
+    # 获取TOP热点问题
+    top_question: str = "/admin/private/jomoo/v1/getHotQuestion"
+
+    # 获取TOP热点问题的详情内容
+    top_question_info: str = "/admin/private/jomoo/v1/getHotQuestionInfo"
+
+    # 推送热点问题和 点击反馈
     push: str = "/admin/private/jomoo/v1/addPushData"
 
-    # 语音流地址
-    call_stream: str = "/hawkeye/rest/v1/stomp?userToken={user_token}"
-    # 订阅队列
-    call_queue: str = "/topic/result/{agent_id}"
+    # 标准问题点击反馈
+    hit_question_event: str = "/admin/private/jomoo/v1/hitQuestion?access_token={token}"
 
 
 class QianxunPath(BaseSettings):
@@ -50,6 +58,11 @@ class QianxunPath(BaseSettings):
 
     # color 高亮颜色信息展示
     color: str = "/param"
+
+    # 语音流地址  已弃用
+    call_stream: str = "/hawkeye/rest/v1/stomp?userToken={user_token}"
+    # 订阅队列  已弃用
+    call_queue: str = "/topic/result/{agent_id}"
 
 
 class Settings(BaseSettings):
@@ -90,4 +103,3 @@ if __name__ == '__main__':
     print(settings.qianxun_path.call.format(agent_id='12333'))
 
     # print(Path().joinpath(settings.qianxun_host, settings.qianxun_path.call.format(agent_id=1234)))
-

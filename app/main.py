@@ -25,15 +25,26 @@ from app.core.config import settings
 from app.db.database import engine, SessionLocal
 from app.dependencies import get_db
 from app.inner.qianxun import get_agent_info, get_color_info, subscribe_speech_stream, get_recent_call
-from app.outer.yunwen import get_token, push_question_feedback, search_question, get_intention_outer
+from app.outer.yunwen import get_token, push_question_feedback, search_question, get_intention_outer, push_click_event
 from app.db import models, crud, schemas
 from app.utils.stomp import parse_frame
 
+# 初始化数据库
 models.Base.metadata.create_all(bind=engine)
 
 log.info("初始化数据库表成功!")
 app = FastAPI(debug=True, title='九牧实时辅助助手', version='1.0.1')
+
+# origins = [
+#     "http://localhost",
+#     "http://localhost:8187",
+#     "http://10.222.26.183"
+#     "http://10.222.26.183:8187"
+#     "http://127.0.0.1:8187"
+#     "http://127.0.0.1"
+# ]
 app.add_middleware(CORSMiddleware,
+                   # allow_origins=origins,
                    allow_origins=["*"],
                    allow_credentials=True,
                    allow_methods=["*"],
@@ -69,7 +80,7 @@ def read_item(item_id: int, s: str,
     :param q: 查询参数
     :return:
     """
-    url: str = settings.yunwen_host + settings.yunwen_api.get("token")
+    url: str = settings.yunwen_host + settings.yunwen_path.token
     token = get_token()
     log.info(f"获取token成功! token值: {token}")
     return {
@@ -91,7 +102,7 @@ def top(intention: str) -> dict:
 
     try:
 
-        url = settings.yunwen_host + settings.yunwen_path.top
+        url = settings.yunwen_host + settings.yunwen_path.top_question
 
         resp: dict = requests.get(url=url, params={
             "vdnNo": intention,
@@ -99,24 +110,35 @@ def top(intention: str) -> dict:
         }).json()
         log.debug(resp)
         if resp.get('code') == 1:
-            log.debug("获取TOP成功")
+            log.debug(f"根据意图: {intention} 获取TOP问题成功!")
             raw_question_list: list = resp.get('data').get('questionList')
             for questions in raw_question_list:
                 question_list.append(questions)
-        else:
-            log.error("第三方接口连接失败")
+            return {
+                "code": 1,
+                "message": "success",
+                "data": question_list,
 
+            }
+
+        else:
+            log.error(f"第三方接口返回了错误信息.  代码: {resp['code']}, 提示: {resp['message']}")
+            return {
+                "code": 2,
+                "message": resp['message'],
+                "data": []
+
+            }
             pass
 
     except Exception as exc:
-        log.error(f"接口连接失败, 错误提示 {exc}")
+        log.error(f"代码运行错误, 错误提示 {exc}")
+        return {
+            "code": 3,
+            "message": f"代码错误: 错误提示{str(exc)}",
+            "data": [],
 
-    return {
-        "code": 1,
-        "message": "success",
-        "data": question_list,
-
-    }
+        }
 
 
 @app.get("/search", description="标准问题搜索")
@@ -157,7 +179,7 @@ def get_questions(call_id: str,
     :return:
     """
     questions = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == call_id,
-                                                     models.CallQuestion.agent == agent,
+                                                     models.CallQuestion.agent == str(agent),
                                                      # models.CallQuestion.intention_id == intention
                                                      ).order_by(desc(models.CallQuestion.create_time)).all()
 
@@ -213,10 +235,11 @@ def create_question(question: schemas.CallQuestion,
 
 
 @app.delete("/question", description="删除问题")
-def delete_question(question: schemas.CallQuestion, db: Session = Depends(get_db)):
+def delete_question(question: schemas.CallQuestion,
+                    db: Session = Depends(get_db)):
     db_question = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == question.call_id,
                                                        models.CallQuestion.agent == question.agent_id,
-                                                       models.CallQuestion.intention_id == question.intention,
+                                                       # models.CallQuestion.intention_id == question.intention,
                                                        models.CallQuestion.question == question.question
                                                        ).first()
     if db_question:
@@ -237,16 +260,24 @@ def delete_question(question: schemas.CallQuestion, db: Session = Depends(get_db
 
 @app.get("/answer", description="问题知识查询")
 def get_answer(question: str,
+               call_id: Optional[str] = None,
+               source: Optional[int] = 1,
                agent: Optional[str] = Query(None, title="坐席账号",
                                             description="坐席账号 用于标识问题答案访问坐席"),
                db: Session = Depends(get_db)):
     """
-    每次点击答案后, 进行一次统计
+    每次点击答案后, 进行一次统计, 返回反馈状态
     :param question: 标准问题名称
+    :param call_id: 通话ID
+    :param source: 问题来源 1: 语音流 2:检索问题 3: 热点问题
     :param agent:
     :param db: 依赖项
     :return:
     """
+    if source in (1, 2):
+        pass
+    else:
+        log.info("点击的是热点问题")
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.answer.format(
             sys_num=settings.sys_num)
@@ -259,14 +290,17 @@ def get_answer(question: str,
         }).json()
 
         if resp.get("status") == 1:
-            log.info("请求第三方接口成功")
+            log.info(f"查询问题 [{question}] 的知识内容成功")
             raw_data: list = resp.get("data")
             data: list = []
+            log.debug(f"返回的知识: {resp}")
 
-            # TODO 记录该问题被点击
-            db_question: models.Question = db.query(models.Question).filter(
-                models.Question.name == question
+            # 记录该问题被点击+1
+            db_question: models.CallQuestion = db.query(models.CallQuestion).filter(
+                models.CallQuestion.question == question,
+                models.CallQuestion.call_id == call_id,
             ).first()
+
             if db_question:
                 db_question.access_times += 1
                 db.commit()
@@ -274,12 +308,22 @@ def get_answer(question: str,
                 log.debug(f"问题: {question}被访问, 记录访问状态+1")
 
                 # 将问题点击事件推送到云问
-                push_status = push_question_feedback(db_question.id, 1)
+                if source in (1, 2):
+                    push_status = push_click_event(db_question.question_id, db_question.question)
+
+                # 热点问题
+                else:
+                    push_status = push_question_feedback(db_question.question_id, 1)
+
                 if push_status:
                     log.info("问题点击状态推送到云问成功")
                 else:
                     log.warning("推送问题点击状态")
             else:
+                # 热点问题不会被后端记录 但是依然需要反馈
+                # 点击的是热点问题 需要反馈
+                push_question_feedback(db_question.question_id, 1)
+
                 log.warning(f"问题: {question}, 未被后端记录")
 
             # 拼接知识答案
@@ -292,7 +336,7 @@ def get_answer(question: str,
         else:
             log.error("接口请求错误")
             return {
-                "code": 3,
+                "code": 2,
                 "message": "failed: 第三方接口返回了错误的代码",
                 "data": "第三方接口返回了错误的代码",
 
@@ -301,7 +345,7 @@ def get_answer(question: str,
     except Exception as exc:
         log.error(f"请求云问接口失败! 请检查接口是否连通, 错误提示: {exc}")
         return {
-            "code": 2,
+            "code": 3,
             "message": "error: 请求云问接口失败",
             "data": "请求云问接口失败",
 
@@ -311,6 +355,7 @@ def get_answer(question: str,
         "code": 1,
         "message": "success",
         "data": data,
+        "status": '',
     }
 
 
@@ -322,7 +367,7 @@ def get_reminder(call_id: str, db: Session = Depends(get_db)):
     ).order_by(
         desc(models.WarningEventMessage.create_time)
     ).all()
-
+    log.debug(f"预警提醒信息: {db_reminder}")
     return {
         'code': 1,
         "message": "success",
@@ -346,8 +391,10 @@ def get_intention(phone: str = Query(..., title="手机号", max_length=16),
             "code": 1,
             "message": "success",
             "data": {
-                'id': intention_id,
-                'name': intention_name
+                "intention": {
+                    'id': intention_id,
+                    'name': intention_name
+                }
             },
         }
     else:
@@ -396,36 +443,39 @@ def question_feedback(feedback: schemas.Feedback,
     """
 
     # 如果已经反馈过则不需要再次反馈
-    exists = db.query(models.Feedback).filter(
-        models.Feedback.question == feedback.question
+    # 判断问题是否反馈过
+    db_call_question: models.CallQuestion = db.query(models.CallQuestion).filter(
+        models.CallQuestion.question == feedback.question,
+        models.CallQuestion.call_id == feedback.call_id,
     ).first()
-    log.debug(f"查询结果: {exists}")
-    if not exists:
-        log.info("提交反馈成功")
-        db_feedback = models.Feedback(question=feedback.question,
-                                      knowledge_id=feedback.knowledge_id,
-                                      feedback=feedback.feedback,
-                                      agent=feedback.agent)
-        db.add(db_feedback)
-        db.commit()
-        db.refresh(db_feedback)
 
-        # 将反馈结果推送到云问
-        push_status = push_question_feedback(feedback.knowledge_id, 2,
-                                             feedback.feedback)
+    # 查询问题是否存在
+    if db_call_question:
+        if db_call_question.feedback == 0:
+            log.info("提交反馈成功")
+            db_call_question.feedback = feedback.feedback
 
-        if db_feedback:
+            db.commit()
+            db.refresh(db_call_question)
+
+            # 将反馈结果推送到云问
+            push_status = push_question_feedback(feedback.knowledge_id, 2,
+                                                 feedback.feedback)
+
             status = 1
             description = "提交成功"
         else:
+            log.debug(f"通话ID: {feedback.call_id}下的问题:{feedback.question}已经反馈过, 无须再次提交反馈")
             status = 0
-            description = "提交失败"
+            description = "该问题反馈结果已记录, 无须再次提交"
+            push_status = False
 
+    # 该问题不再问题标签列表中, 无法提交反馈
     else:
         log.info(f"问题: [{feedback.question}] 已提交过反馈, 无须再次提交")
         push_status = False
-        status = 2
-        description = "该问题反馈结果已记录, 无须再次提交"
+        status = -1
+        description = "无效问题"
     return {
         "code": 1,
         "message": "success",
@@ -506,11 +556,11 @@ def chart_statistics(date: Optional[str] = None, db: Session = Depends(get_db)):
             headers[2]: db_call.filter(models.HangupEventMessage.agent_id == row[1]).count(),
             headers[3]: db_reminder.filter(
                 models.WarningEventMessage.agent_id == row[1],
-                models.WarningEventMessage.warning is False
+                models.WarningEventMessage.warning == 0,
             ).count(),
             headers[4]: db_reminder.filter(
                 models.WarningEventMessage.agent_id == row[1],
-                models.WarningEventMessage.warning
+                models.WarningEventMessage.warning == 1
             ).count(),
         }
         # 获取 提醒/预警总数
@@ -575,28 +625,18 @@ def export_chart(date: Optional[str] = None, agent: Optional[Union[int, str]] = 
     file_path = settings.xlsx_file_path.joinpath(f"{today}.xlsx")
 
     # 用于测试
-    data = [(1, 2, 3), (4, 5, 6)]
-    headers = ('一', '二', '三')
-    workbook = xlsxwriter.Workbook(file_path)
-    worksheet = workbook.add_worksheet()
-    statistics: list = [row for row in data]
-    statistics.insert(0, headers)
-    for index, row in enumerate(statistics):
-        worksheet.write_row(index, 0, row)
-
-    workbook.close()
+    # data = [(1, 2, 3), (4, 5, 6)]
+    # headers = ('一', '二', '三')
+    # workbook = xlsxwriter.Workbook(file_path)
+    # worksheet = workbook.add_worksheet()
+    # statistics: list = [row for row in data]
+    # statistics.insert(0, headers)
+    # for index, row in enumerate(statistics):
+    #     worksheet.write_row(index, 0, row)
+    #
+    # workbook.close()
 
     return FileResponse(file_path)
-
-
-@app.post("/reminder_receiver")
-def receive_reminder():
-    """
-    接口用于接收预警提醒
-    :return:
-    """
-    pass
-    return
 
 
 @app.post("/warning_event")
@@ -665,7 +705,7 @@ def receive_warning_event(data: dict = Body(...),
             db.commit()
             db.refresh(db_call_sentence)
 
-        log.info("接收推送消息成功, 并记录到数据库")
+        log.info(f"接收预警推送消息成功, 并记录到数据库! {db_warning}, {db_warning.warning}")
         print(event)
 
     return {
@@ -686,8 +726,8 @@ def receive_hangup_event(
         agent_name=multi_agent_info['name'] if multi_agent_info else None,
         account=data['account'],
         extension=data['extension'],
-        ring_time=data['ringTime'].strptime(data["ringTime"],
-                                            '%Y-%m-%d %H:%M:%S') if data["ringTime"] else None,
+        ring_time=datetime.strptime(data["ringTime"],
+                                    '%Y-%m-%d %H:%M:%S') if data["ringTime"] else None,
         call_id=data["callId"],
         direction=data['direction'],
         total_time=data['duration'],
@@ -759,7 +799,7 @@ def on_speech_stream(msg: str):
                     for question in questions:
                         db_question = models.CallQuestion(question=question['question'],
                                                           question_id=question['knowledge_id'],
-                                                          question_source=2,
+                                                          question_source=1,
                                                           call_id=speech_stream['callId'],
                                                           agent=speech_stream['agentId'],
                                                           intention_id=intention_id,
@@ -778,7 +818,7 @@ def on_speech_stream(msg: str):
 
 
 @app.get("/speech_stream")
-async def receive_speech_stream(agent: str, intention: str, background_tasks: BackgroundTasks,
+async def receive_speech_stream(agent: str, background_tasks: BackgroundTasks, intention: Optional[str] = None,
                                 db: Session = Depends(get_db)):
     log.info(f"正在获取坐席:{agent}下的实时语音流信息")
     # msg = """{"agentId":"9999","callId":"eb4da0f8-0ddb-4b07-aa3e-5e18bacad2eb",
@@ -894,10 +934,13 @@ def get_call_info(agent: Union[str, int], db: Session = Depends(get_db)):
         r.hset(info['call_id'], 'ring_time', info['ring_time'])
         r.hset(info['call_id'], 'extension', info['extension'])
         r.hset(info['call_id'], 'duration', info['duration'])
-        r.hset(info['call_id'], 'extra_info', info['extra_info'])
-        r.hset(info['call_id'], 'is_online', info['is_online'])
-        r.hset(info['call_id'], 'intention_id', intention_id)
-        r.hset(info['call_id'], 'intention_name', intention_name)
+        # 是字典 暂时不存储
+        # r.hset(info['call_id'], 'extra_info', info['extra_info'])
+        r.hset(info['call_id'], 'is_online', str(info['is_online']))
+        if intention_id:
+            r.hset(info['call_id'], 'intention_id', intention_id)
+        if intention_name:
+            r.hset(info['call_id'], 'intention_name', intention_name)
         db_call = models.Call(
             agent=info['agent'],
             caller=info['caller'],
@@ -930,8 +973,8 @@ def get_call_info(agent: Union[str, int], db: Session = Depends(get_db)):
 
         log.error(f"获取坐席: {agent}最近通话信息失败!")
         return {
-            'code': 1,
-            'message': 'success',
+            'code': 2,
+            'message': 'failed',
             'data': {},
         }
 

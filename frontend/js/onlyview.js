@@ -4,28 +4,29 @@ var vm = new Vue({
         return {
             //所有参数
             allParams: {
-                phone: '13733334444', // 来电手机号
-                agent: "23567", // 坐席ID
-                intention: 1001, // 进线意图号码
-                intention_name: '马桶维修', // 进线意图号码
-                call_id: '01'
+                phone: '13712345678', // 来电手机号
+                agent: "9999", // 坐席ID
+                intention: 86529023, // 进线意图号码
+                intention_name: '马桶', // 进线意图号码
+                call_id: '1234'
             },
             defaultProps: {
                 label: 'question',
             },
-            bublicQuestion: '', // 公用的问题
+            publicQuestion: '', // 公用的问题
+            publicKnowledgeId: null, // 共用的知识ID
             isLoading: true,
             isTopLoading: true,
             intentionName: '',
             today: '',
             month: '',
-            tags: [],
+            tags: [],  // 问题标签列表
             resultOneColor: '',
             resultTwoColor: '',
             resultOneName: '',
             resultTwoName: '',
             isShow: false, // 是否展开问题内容
-            iconDatas: 'el-icon-caret-top',
+            iconDatas: 'el-icon-caret-bottom',
             searchProblem: '',
             treeData: [], // 搜索问题列表数据
             hotDatas: [], // 热门Top问题
@@ -40,7 +41,7 @@ var vm = new Vue({
                 value: 2,
                 label: '不可⽤反馈'
             }],
-            isDisabled: true,
+            isDisabled: false,
             value: ''
             // tinymceInit:{
             //   selector: '#mytextarea',
@@ -57,7 +58,7 @@ var vm = new Vue({
         }
     },
     watch: {
-        // bublicQuestion(newVal, oldVal) {
+        // publicQuestion(newVal, oldVal) {
         //   if(newVal && oldVal!= newVal) {
         //     this.isDisabled = false
         //   }
@@ -89,16 +90,18 @@ var vm = new Vue({
         }
     },
     methods: {
+        // 问题反馈
         feedBackClick() {
             feedBack({
-                question: this.bublicQuestion,
+                question: this.publicQuestion,
                 feedback: this.value,
+                knowledge_id: this.publicKnowledgeId,
                 agent: this.allParams.agent,
                 call_id: this.allParams.call_id
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
-                    this.$message({message: resData.data.description, type: 'success'})
+                    this.$message({message: resData.data.description, type: 'success', duration:1000})
                 }
             }).catch(err => {
                 console.log(err);
@@ -106,6 +109,7 @@ var vm = new Vue({
         },
         search() {
             // 通过搜索框, 搜索标准问题, 返回可能的标准问题列表
+            console.log("尝试搜索标准问题")
             getSearchList({
                 question: this.searchProblem
             }).then(res => {
@@ -125,7 +129,7 @@ var vm = new Vue({
         },
         showBtn(val) {
             this.isShow = !val
-            this.iconDatas = this.isShow === true ? 'el-icon-caret-bottom' : 'el-icon-caret-top'
+            this.iconDatas = this.isShow === true ? 'el-icon-caret-top' : 'el-icon-caret-bottom'
             document.getElementById("btnId").blur()
         },
         // 意图获取
@@ -138,6 +142,7 @@ var vm = new Vue({
                 if (resData.code === 1) {
                     this.intentionName = resData.data.intention.name
                     this.allParams.intention = resData.data.intention.id
+                    this.allParams.intention_name = resData.data.intention.name
                     this.getTagsData()
                     this.getTopQuestion()
                 }
@@ -146,17 +151,31 @@ var vm = new Vue({
                 console.log(err);
             })
         },
-        // 来电统计信息
+        // 获取通话信息
         getCallInfoData() {
             getCallInfo({
                 agent: this.allParams.agent
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
+                    console.log('获取通话信息成功', resData)
                     this.allParams.call_id = resData.data.call_id
                     this.allParams.phone = resData.data.phone
                     this.allParams.intention = resData.data.intention_id
                     this.allParams.intention_name = resData.data.intention_name
+                }
+            }).catch(err => {
+                console.log(err);
+            })
+        },
+        // 开启文本流识别任务
+        runTaskData() {
+            runTaskGetSpeechStream({
+                agent: this.allParams.agent
+            }).then(res => {
+                let resData = res.data
+                if (resData.code === 1) {
+                    console.log("执行后台任务成功")
                 }
             }).catch(err => {
                 console.log(err);
@@ -182,7 +201,7 @@ var vm = new Vue({
             getTags({
                 call_id: this.allParams.call_id,
                 intention: this.allParams.intention,
-                agent_id: this.allParams.agent,
+                agent: this.allParams.agent,
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
@@ -193,7 +212,9 @@ var vm = new Vue({
                         }
                         return n
                     })
+
                     this.tags = tagsList
+                    console.log("标签列表,", this.tags)
                 }
             }).catch(err => {
                 console.log(err);
@@ -218,12 +239,13 @@ var vm = new Vue({
                 call_id: this.allParams.call_id,
                 agent_id: this.allParams.agent,
                 intention: this.allParams.intention,
+                intention_name: this.allParams.intention_name,
                 question: tag.question
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
                     this.getTagsData()
-                    this.$message({message: resData.data.description, type: 'success'})
+                    this.$message({message: resData.data.description, type: 'success', duration:1000})
                 }
             }).catch(err => {
                 console.log(err);
@@ -233,11 +255,12 @@ var vm = new Vue({
         },
         // 点击tag显示问题详情
         tagClick(tag) {
-            this.getDetail(tag.question)
+            this.getDetail(tag.question, tag.question_source)
             this.showBtn(false)
         },
+        // 点击搜索框检索出的问题详情
         handleNodeClick(data) {
-            this.getDetail(data.question)
+            this.getDetail(data.question, 2)
         },
         //  添加tags
         addAppend(data) {
@@ -245,12 +268,14 @@ var vm = new Vue({
                 call_id: this.allParams.call_id,
                 agent_id: this.allParams.agent,
                 intention: this.allParams.intention,
-                question: data.question
+                intention_name: this.allParams.intention_name,
+                question: data.question,
+                knowledge_id: data.knowledge_id
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
                     this.getTagsData()
-                    this.$message({message: resData.data.description, type: 'success'})
+                    this.$message({message: resData.data.description, type: 'success',duration:1000})
                 }
             }).catch(err => {
                 console.log(err);
@@ -276,18 +301,23 @@ var vm = new Vue({
         },
         // 点击topClick
         topClick(obj) {
-            this.getDetail(obj.question)
+            this.getDetail(obj.question, 3)
         },
         // 问题标签知识内容查询
-        getDetail(str) {
-            this.bublicQuestion = str
+        getDetail(str, source) {
+            console.log("尝试查询问题知识")
+            this.publicQuestion = str
             getAnswerDetail({
-                question: this.bublicQuestion
+                question: this.publicQuestion,
+                call_id: this.allParams.call_id,
+                agent: this.allParams.agent,
+                source: source
             }).then(res => {
                 let resData = res.data
+                console.log("问题知识查询结果", resData)
                 if (resData.code === 1) {
                     // 会返回一个状态是否可以点击反馈状态
-                    this.answerContent = resData.data.answer_list[0]
+                    this.answerContent = resData.data[0].answer_list[0]
                 }
             }).catch(err => {
                 console.log(err);
@@ -295,6 +325,7 @@ var vm = new Vue({
         },
         // 实时展示最新命中模型和语⾳分析结果, 最多展示2个, 新的覆盖旧的
         getCheckReminder() {
+            console.log("尝试获取提醒信息")
             getReminder({
                 call_id: this.allParams.call_id,
                 agent_id: this.allParams.agent
@@ -302,6 +333,7 @@ var vm = new Vue({
                 let resData = res.data
                 if (resData.code === 1) {
                     var checkReminder = []
+                    console.log(res)
                     checkReminder = resData.data.filter((n, index) => {
                         if (index < 2) {
                             return n
@@ -309,14 +341,14 @@ var vm = new Vue({
                     })
                 }
                 if (checkReminder.length === 1) {
-                    this.resultOneColor = checkReminder[0].background
-                    this.resultOneName = checkReminder[0].name
+                    this.resultOneColor = checkReminder[0].color
+                    this.resultOneName = checkReminder[0].model_name
                 }
                 if (checkReminder.length === 2) {
-                    this.resultOneColor = checkReminder[0].background
-                    this.resultTwoColor = checkReminder[1].background
-                    this.resultOneName = checkReminder[0].name
-                    this.resultTwoName = checkReminder[1].name
+                    this.resultOneColor = checkReminder[0].color
+                    this.resultTwoColor = checkReminder[1].color
+                    this.resultOneName = checkReminder[0].model_name
+                    this.resultTwoName = checkReminder[1].model_name
                 }
             }).catch(err => {
                 console.log(err);
@@ -336,12 +368,24 @@ var vm = new Vue({
         }
     },
     mounted() {
-        this.agent = this.GetQueryString('agent')
-        this.getIntentionData()
-        this.getCallRecordData()
-        this.getCheckReminder()
+        // 通过url参数获取坐席账号
+        console.log("url参数中的agent", this.GetQueryString('agent'))
+        this.allParams.agent = this.GetQueryString('agent')
+        console.log("url参数中的agent", this.allParams.agent)
+        // 实时获取语音流信息
+        this.runTaskData()
+        // 获取通话信息
         this.getCallInfoData()
+        // 获取意图信息
+        this.getIntentionData()
+        // 获取来电统计
+        this.getCallRecordData()
+        // 获取预警提醒
+        this.getCheckReminder()
+        // TODO 是否定时获取
         // this.getTimer()
+
+        // 弃用
         // tinymce.init(this.tinymceInit)
         this.calcHeight()
         window.onresize = () => {

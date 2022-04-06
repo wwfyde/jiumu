@@ -33,9 +33,11 @@ var vm = new Vue({
       })
     },
     getTableDatas() {
+      console.log("尝试获取报表")
       getTableChart().then(res => {
         let resData = res.data
         if (resData.code === 1) {
+          console.log("获取报表成功", resData.data)
           for(let key in resData.data.data[0]) {
             this.headers.push(key)
           }
@@ -62,7 +64,8 @@ var vm = new Vue({
     },
     // 导出报表按钮
     exportTable() {
-
+      console.log("准备导出文件")
+      window.open(baseUrl + '/chart/export')
     }
   },
   mounted() {

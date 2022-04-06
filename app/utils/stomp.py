@@ -164,17 +164,23 @@ class Dispatcher:
         if command == "MESSAGE":
             self.stomp.callback_registry[headers['destination']](body)
 
-    def _on_error(self, ws, error, exception):
+    def _on_error(self, ws, error, *args):
         """
         Executed when WS connection errors out
         """
         print(error)
+        # 当出现错误是应该关闭连接
+        self.ws.close()
+        print("关闭成功")
+        return
 
     def _on_close(self, ws, code, msg):
         """
         Executed when WS connection is closed
         """
         print("### closed ###")
+        # 结束时关闭任务
+        return
 
     def _on_open(self, ws):
         """
@@ -293,6 +299,7 @@ if __name__ == '__main__':
         agent = 9999
         stomp = Stomp(f"192.168.129.176:8186/hawkeye/rest/v1/stomp?userToken={token}", sockjs=False, wss=False)
         stomp.connect()
+
         print("连接成功")
         stomp.subscribe(f"/topic/result/{agent}", on_speech_stream)
     # ws = websocket.WebSocketApp()

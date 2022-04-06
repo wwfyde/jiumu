@@ -48,19 +48,20 @@ class Demo(BaseModel):
 
 class Feedback(BaseModel):
     question: str
-    knowledge_id: int
+    knowledge_id: Optional[int] = None
     feedback: int
+    call_id: str
     agent: Union[int, str]
 
 
 class CallQuestion(BaseModel):
     question: str
-    knowledge_id: int
-    intention: int
+    knowledge_id: Optional[int] = None
+    intention: Optional[int] = None
     call_id: str
-    agent_id: int
-    intention_name: str
-    source: Optional[int] = 1
+    agent_id: Union[int, str]
+    intention_name: Optional[str] = None
+    source: Optional[int] = 2
 
 
 class Question(BaseModel):

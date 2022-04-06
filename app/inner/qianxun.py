@@ -1,4 +1,5 @@
 import json
+import time
 from typing import Optional, Union
 
 import redis
@@ -126,7 +127,7 @@ def subscribe_speech_stream(agent: str, callback):
     websocket.enableTrace(True)
     token = settings.qianxun_token
     # token = '72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94'
-    stomp = Stomp(f"192.168.129.176:8186/hawkeye/rest/v1/stomp?userToken={token}", sockjs=False, wss=False)
+    stomp = Stomp(f"{settings.qianxun_host}/hawkeye/rest/v1/stomp?userToken={token}", sockjs=False, wss=False)
     stomp.connect()
     print("连接成功")
     stomp.subscribe(f"/topic/result/{agent}", callback)

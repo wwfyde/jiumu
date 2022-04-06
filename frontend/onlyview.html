@@ -113,8 +113,11 @@
                 <el-input
                   placeholder="输入关键字进行过滤"
                   v-model="searchProblem"
+                  @keyup.enter.native="search"
                   >
-                 <i slot="suffix" class="el-icon-search iconStyle" @click="search"></i>
+                 <i slot="suffix" class="el-icon-search iconStyle"
+                    @click="search"
+                 ></i>
                 </el-input>
                 <el-tree
                   ref="tree"

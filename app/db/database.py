@@ -14,7 +14,7 @@ SQLALCHEMY_DATABASE_URL = settings.mysql_dsn
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={},
-    echo=True
+    echo=False  # TODO 设置为True时将会打印所有语句
 )
 log.info("初始化数据库引擎")
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -29,4 +29,3 @@ if __name__ == '__main__':
     print(cur.fetchone())
     pass
     db = SessionLocal()
-

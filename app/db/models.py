@@ -243,7 +243,7 @@ class Question(Base):
     # knowledge_id = Column(Integer, unique=True, nullable=False, comment="知识ID")
     domain = Column(Integer, comment="所属知识库ID")
     type = Column(Integer, comment="问题类型")
-    source = Column(Integer, comment="问题来源")
+    source = Column(Integer, default=1, comment="问题来源")
     access_times = Column(Integer, comment="点击次数")
     feedback = Column(Integer, comment="反馈状态")
     create_time = Column(DateTime, default=datetime.datetime.now(),
@@ -260,8 +260,10 @@ class CallQuestion(Base):
     __tablename__ = "call_question"
     gid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     question = Column(String(64), nullable=False, comment="问题名称")
-    question_id = Column(String(64), nullable=False, comment="问题ID")
+    question_id = Column(Integer, nullable=False, comment="问题ID")
     question_source = Column(Integer, nullable=False, default=0, comment="问题来源")
+    access_times = Column(Integer, default=0, comment="点击次数")
+    feedback = Column(Integer, default=0, comment="反馈状态")
     call_id = Column(String(64), nullable=False, comment="通话ID")
     agent = Column(String(16), comment="坐席ID")
     # intention = Column(Integer, ForeignKey('intenion'), nullable=False, comment="意图名称")

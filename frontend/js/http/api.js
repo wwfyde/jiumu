@@ -65,3 +65,8 @@ function feedBack(data) {
   return fetch_POST('/feedback', data)
 }
 
+// 执行获取语音识别文本流任务
+function runTaskGetSpeechStream(data){
+  return fetch_GET('/speech_stream', data)
+}
+

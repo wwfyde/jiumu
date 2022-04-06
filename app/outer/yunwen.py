@@ -51,7 +51,7 @@ def get_token(fresh: bool = False) -> str:
                 log.info("获取token成功!")
                 data: dict = resp.get('data')
                 token = data.get('accessToken')
-                r.set("token", token, ex=60*60)
+                r.set("token", token, ex=60 * 60)
             else:
                 log.error(f"获取token失败, 错误代码: {resp.get('code')}, 错误提示: {resp.get('message')}")
                 token = ''
@@ -65,7 +65,13 @@ def get_token(fresh: bool = False) -> str:
 
 
 def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int] = None) -> bool:
-
+    """
+    推送热点问题点击和问题反馈
+    :param knowledge_id:
+    :param types:
+    :param feedback:
+    :return:
+    """
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.push
         resp: dict = requests.post(url, data=dict(
@@ -86,9 +92,38 @@ def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int
         return False
 
 
+def push_click_event(knowledge_id: int, question: str):
+    """
+    标准问题点击
+    当点击检索问题时, 推送该状态
+
+    :param knowledge_id:
+    :param question:
+    :return:
+    """
+    try:
+        url: str = settings.yunwen_host + settings.yunwen_path.hit_question_event.format(
+            token=settings.yunwen_path.token
+        )
+        resp: dict = requests.post(url, data=dict(
+            knowledgeId=knowledge_id,
+            content=question,
+        )).json()
+        if resp['code'] == 1:
+            log.info("反馈标准问题点击状态成功")
+
+            return True
+        else:
+            log.error(f"提交返回结果失败, 错误提示: {resp['message']}")
+            return False
+    except Exception as exc:
+        log.error(f"请求第三方接口失败! 错误提示: {exc}")
+        return False
+
+
 def search_question(question: str, source: int = 1):
     """
-
+    搜索标准问题
     :param question: 搜索问题
     :param source:
     :return:
@@ -110,15 +145,29 @@ def search_question(question: str, source: int = 1):
 
             if raw_data:
                 for raw_question in raw_data:
+                    # 获取问题列表
+                    if source == 1:
+                        log.info("通过搜索框搜索")
+                    else:
+                        log.info("通过文本流搜索")
+                        # 直接将问题记录记录到数据库
                     #
-                    crud.get_question()
-                    data.append(dict(knowledge_id=raw_question.get('itemId'),
-                                     question=raw_question.get('content'),
-                                     question_desc=raw_question.get(
-                                         'showContent')))
+                    data.append(
+                        dict(
+                            knowledge_id=raw_question.get('itemId'),
+                            question=raw_question.get('content'),
+                            question_desc=raw_question.get('showContent')
+                        )
+                    )
             else:
+                data.append(dict(knowledge_id=1234,
+                                 question='测试',
+                                 question_desc='测试描述'))
                 log.info("未搜索到标准问题")
         else:
+            data.append(dict(knowledge_id=1234,
+                             question='测试',
+                             question_desc='测试描述'))
             log.error("接口返回了错误的信息,")
 
     except requests.exceptions.ConnectionError as exc:
@@ -128,8 +177,8 @@ def search_question(question: str, source: int = 1):
 
 
 def get_intention_outer(phone: Union[int, str]):
-    id: Optional[int] = None
-    name: Optional[str] = ''
+    id: Optional[int] = 86529023
+    name: Optional[str] = '马桶'
     try:
         url = settings.yunwen_host + settings.yunwen_path.intention
         resp: dict = requests.request(method='GET', url=url, params={
@@ -137,6 +186,7 @@ def get_intention_outer(phone: Union[int, str]):
             "sysNum": settings.sys_num,
             "access_token": get_token(),
         }).json()
+        log.debug(f"意图接口返回的json信息: {resp}")
 
         if resp['code'] == 1:
             log.info("意图获取成功")
