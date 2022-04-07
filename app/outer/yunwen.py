@@ -147,9 +147,12 @@ def search_question(question: str, source: int = 1):
                 for raw_question in raw_data:
                     # 获取问题列表
                     if source == 1:
-                        log.info("通过搜索框搜索")
+                        log.info("通过实时语音文本流搜索")
+                    elif source == 2:
+                        log.info("通过检索框搜索")
+
                     else:
-                        log.info("通过文本流搜索")
+                        log.info("通过热点问题")
                         # 直接将问题记录记录到数据库
                     #
                     data.append(
@@ -190,7 +193,7 @@ def get_intention_outer(phone: Union[int, str]):
 
         if resp['code'] == 1:
             log.info("意图获取成功")
-            id = resp['data']['vdnNo']
+            id = int(resp['data']['vdnNo'])
             name = resp['data']['vdnName']
 
             pass

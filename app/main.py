@@ -92,9 +92,9 @@ def read_item(item_id: int, s: str,
 
 
 @app.get("/top", description="获取TOP问题, 意图热门知识排行")
-def top(intention: str) -> dict:
+def top(intention: int) -> dict:
     """
-    根据意图获取热门知识排行榜
+    根据意图号获取热门知识排行榜
     :param intention:
     :return:
     """
@@ -110,10 +110,15 @@ def top(intention: str) -> dict:
         }).json()
         log.debug(resp)
         if resp.get('code') == 1:
-            log.debug(f"根据意图: {intention} 获取TOP问题成功!")
-            raw_question_list: list = resp.get('data').get('questionList')
+            log.debug(f"根据意图: {intention} 获取TOP问题成功! 内容: {resp}")
+            raw_question_list: list = resp.get('data')
             for questions in raw_question_list:
-                question_list.append(questions)
+                question_list.append(dict(
+                    question=questions['question'],
+                    knowledge_id=questions['knowledgeId'],
+                    create_time=questions['createTime'],
+                    type=questions['type'],
+                ))
             return {
                 "code": 1,
                 "message": "success",
@@ -153,7 +158,7 @@ def search(question: str) -> dict:
     :return:
     """
     # TODO 搜索问题时标记问题来源
-    data: list = search_question(question, source=1)
+    data: list = search_question(question, source=2)
 
     return {
         "code": 1,
@@ -260,6 +265,7 @@ def delete_question(question: schemas.CallQuestion,
 
 @app.get("/answer", description="问题知识查询")
 def get_answer(question: str,
+               knowledge_id: Optional[int] = None,
                call_id: Optional[str] = None,
                source: Optional[int] = 1,
                agent: Optional[str] = Query(None, title="坐席账号",
@@ -267,6 +273,7 @@ def get_answer(question: str,
                db: Session = Depends(get_db)):
     """
     每次点击答案后, 进行一次统计, 返回反馈状态
+    :param knowledge_id:
     :param question: 标准问题名称
     :param call_id: 通话ID
     :param source: 问题来源 1: 语音流 2:检索问题 3: 热点问题
@@ -278,6 +285,7 @@ def get_answer(question: str,
         pass
     else:
         log.info("点击的是热点问题")
+    feedback_status = 0
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.answer.format(
             sys_num=settings.sys_num)
@@ -303,6 +311,7 @@ def get_answer(question: str,
 
             if db_question:
                 db_question.access_times += 1
+                feedback_status = db_question.feedback
                 db.commit()
                 db.refresh(db_question)
                 log.debug(f"问题: {question}被访问, 记录访问状态+1")
@@ -322,7 +331,8 @@ def get_answer(question: str,
             else:
                 # 热点问题不会被后端记录 但是依然需要反馈
                 # 点击的是热点问题 需要反馈
-                push_question_feedback(db_question.question_id, 1)
+
+                push_question_feedback(knowledge_id, 1)
 
                 log.warning(f"问题: {question}, 未被后端记录")
 
@@ -355,7 +365,7 @@ def get_answer(question: str,
         "code": 1,
         "message": "success",
         "data": data,
-        "status": '',
+        "status": feedback_status,
     }
 
 
@@ -789,7 +799,7 @@ def on_speech_stream(msg: str):
                 if raw_message['type'] == 'text':
                     text: str = raw_message['info']['text']
                     #  查询问题知识库
-                    questions: list = search_question(text, source=2)
+                    questions: list = search_question(text, source=1)
                     # questions: list = [
                     #     {'question': '测试', 'knowledge_id': 1243},
                     #     {'question': '测试2', 'knowledge_id': 12434},
@@ -976,6 +986,53 @@ def get_call_info(agent: Union[str, int], db: Session = Depends(get_db)):
             'code': 2,
             'message': 'failed',
             'data': {},
+        }
+
+
+@app.get("/top_info", description="获取TOP问题详情")
+def get_top_question_info(knowledge_id: int):
+    """
+    根据知识ID获取TOP问题的内容详情
+    :param knowledge_id:
+    :return:
+    """
+    try:
+
+        url = settings.yunwen_host + settings.yunwen_path.top_question_info
+
+        resp: dict = requests.get(url=url, params={
+            "knowledgeId": knowledge_id,
+            "access_token": get_token(),
+        }).json()
+        log.debug(resp)
+        if resp.get('code') == 1:
+            log.debug(f"根据知识ID: {knowledge_id} 获取TOP问题的内容详情成功! 内容: {resp}")
+            data: dict = resp.get('data')
+
+            return {
+                "code": 1,
+                "message": "success",
+                "data": data,
+
+            }
+
+        else:
+            log.error(f"第三方接口返回了错误信息.  代码: {resp['code']}, 提示: {resp['message']}")
+            return {
+                "code": 2,
+                "message": resp['message'],
+                "data": {}
+
+            }
+            pass
+
+    except Exception as exc:
+        log.error(f"代码运行错误, 错误提示 {exc}")
+        return {
+            "code": 3,
+            "message": f"代码错误: 错误提示{str(exc)}",
+            "data": {}
+
         }
 
 

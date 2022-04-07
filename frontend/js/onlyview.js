@@ -4,11 +4,11 @@ var vm = new Vue({
         return {
             //所有参数
             allParams: {
-                phone: '13712345678', // 来电手机号
-                agent: "9999", // 坐席ID
-                intention: 86529023, // 进线意图号码
-                intention_name: '马桶', // 进线意图号码
-                call_id: '1234'
+                phone: '', // 来电手机号
+                agent: "", // 坐席ID
+                intention: null, // 进线意图号码
+                intention_name: '', // 进线意图号码
+                call_id: ''
             },
             defaultProps: {
                 label: 'question',
@@ -41,7 +41,7 @@ var vm = new Vue({
                 value: 2,
                 label: '不可⽤反馈'
             }],
-            isDisabled: false,
+            isDisabled: true,  // 反馈禁用状态
             value: ''
             // tinymceInit:{
             //   selector: '#mytextarea',
@@ -255,12 +255,12 @@ var vm = new Vue({
         },
         // 点击tag显示问题详情
         tagClick(tag) {
-            this.getDetail(tag.question, tag.question_source)
+            this.getDetail(tag.question, tag.knowledge_id, tag.question_source)
             this.showBtn(false)
         },
         // 点击搜索框检索出的问题详情
         handleNodeClick(data) {
-            this.getDetail(data.question, 2)
+            this.getDetail(data.question, data.knowledge_id, 2)
         },
         //  添加tags
         addAppend(data) {
@@ -284,11 +284,11 @@ var vm = new Vue({
         // 根据进线意图获取TOP问题
         getTopQuestion() {
             getTopList({
-                intention: this.intentionName
+                intention: this.allParams.intention
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
-                    this.hotDatas = resData.data.question_list.filter((n, index) => {
+                    this.hotDatas = resData.data.filter((n, index) => {
                         if (index < 10) {
                             return n
                         }
@@ -301,14 +301,17 @@ var vm = new Vue({
         },
         // 点击topClick
         topClick(obj) {
-            this.getDetail(obj.question, 3)
+            console.log("尝试查询热点问题", obj, obj.question, obj.knowledge_id)
+            this.getDetail(obj.question, obj.knowledge_id,3)
         },
         // 问题标签知识内容查询
-        getDetail(str, source) {
+        getDetail(question, knowledge_id, source) {
             console.log("尝试查询问题知识")
-            this.publicQuestion = str
+            this.publicQuestion = question
+            this.publicKnowledgeId = knowledge_id
             getAnswerDetail({
-                question: this.publicQuestion,
+                question: question,
+                knowledge_id: this.knowledge_id,
                 call_id: this.allParams.call_id,
                 agent: this.allParams.agent,
                 source: source
@@ -318,6 +321,15 @@ var vm = new Vue({
                 if (resData.code === 1) {
                     // 会返回一个状态是否可以点击反馈状态
                     this.answerContent = resData.data[0].answer_list[0]
+                    //  问题反馈状态
+                    if (resData.status === 0){
+                        this.isDisabled = false
+                    }
+                    else{
+                        this.isDisabled =true
+                    }
+
+
                 }
             }).catch(err => {
                 console.log(err);
