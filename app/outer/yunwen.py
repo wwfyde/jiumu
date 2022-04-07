@@ -128,6 +128,10 @@ def search_question(question: str, source: int = 1):
     :param source:
     :return:
     """
+    if source == 1:
+        log.info(f"正在根据文本流: [{question}]查询标准问题")
+    else:
+        log.info(f"正在根据搜索框: [{question}]查询标准问题")
     data = []
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.search.format(

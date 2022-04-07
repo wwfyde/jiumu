@@ -780,51 +780,62 @@ def on_speech_stream(msg: str):
     """
     print("正在订阅")
     print("MESSAGE: " + msg)
-    command, header, body = parse_frame(msg)
+    log.info(f"收到订阅消息: {msg}")
+    # command, header, body = parse_frame(msg)
     # command, header, body = ('MESSAGE', {}, msg)
 
-    if command == "MESSAGE":
-        speech_stream: dict = json.loads(body)
+    # if command == "MESSAGE":
+    speech_stream: dict = json.loads(msg.strip())
 
-        if speech_stream['status'] == 'continue':
+    if speech_stream['status'] == 'continue':
+        log.info("通话进行中")
 
-            # 根据呼叫方向确定客户号码
-            phone = speech_stream['callFromNumber'] if speech_stream['direction'] == 'inbound' \
-                else speech_stream['callToNumber']
+        # 根据呼叫方向确定客户号码
+        phone = speech_stream['callFromNumber'] if speech_stream['direction'] == 'inbound' \
+            else speech_stream['callToNumber']
 
-            # 获取意图
-            intention_id, intention_name = get_intention_outer(phone)
+        # 获取意图
+        intention_id, intention_name = get_intention_outer(phone)
 
-            for raw_message in speech_stream['messages']:
-                if raw_message['type'] == 'text':
-                    text: str = raw_message['info']['text']
-                    #  查询问题知识库
-                    questions: list = search_question(text, source=1)
-                    # questions: list = [
-                    #     {'question': '测试', 'knowledge_id': 1243},
-                    #     {'question': '测试2', 'knowledge_id': 12434},
-                    # ]
+        for raw_message in speech_stream['messages']:
+            if raw_message['type'] == 'text':
+                text: str = raw_message['info']['text']
+                #  查询问题知识库
+                questions: list = search_question(text, source=1)
+                # questions: list = [
+                #     {'question': '测试', 'knowledge_id': 1243},
+                #     {'question': '测试2', 'knowledge_id': 12434},
+                # ]
 
-                    # TODO 将问题列表添加到数据库
-                    for question in questions:
-                        db_question = models.CallQuestion(question=question['question'],
-                                                          question_id=question['knowledge_id'],
-                                                          question_source=1,
-                                                          call_id=speech_stream['callId'],
-                                                          agent=speech_stream['agentId'],
-                                                          intention_id=intention_id,
-                                                          intention_name=intention_name,
-                                                          phone=phone)
-                        db: Session = SessionLocal()
-                        log.info("添加问题到数据库")
-                        db.add(db_question)
-                        db.commit()
-                        db.refresh(db_question)
+                # TODO 将问题列表添加到数据库
+                for question in questions:
+                    db_question = models.CallQuestion(question=question['question'],
+                                                      question_id=question['knowledge_id'],
+                                                      question_source=1,
+                                                      call_id=speech_stream['callId'],
+                                                      agent=speech_stream['agentId'],
+                                                      intention_id=intention_id,
+                                                      intention_name=intention_name,
+                                                      phone=phone)
+                    db: Session = SessionLocal()
+                    log.info("添加问题到数据库")
+                    db.add(db_question)
+                    db.commit()
+                    db.refresh(db_question)
 
-    elif command == "CONNECTED":
-        pass
+    elif speech_stream['status'] == 'begin':
+        log.info("通话开始")
+
+    elif speech_stream['status'] == 'end':
+        log.info("通话结束")
+
     else:
-        pass
+        log.warning("未知的通话状态")
+    #
+    # elif command == "CONNECTED":
+    #     pass
+    # else:
+    #     pass
 
 
 @app.get("/speech_stream")
@@ -1035,18 +1046,6 @@ def get_top_question_info(knowledge_id: int):
 
         }
 
-
-@app.get("/caller")
-def get_call_info2(agent: str):
-    """
-    获取当前通话的相关信息
-    :param agent:
-    :return:
-    """
-
-    # 获取最近通话
-    pass
-    return {}
 
 
 #

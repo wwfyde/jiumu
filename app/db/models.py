@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, BIGINT
 from sqlalchemy.orm import relationship
 
 from .database import Base
@@ -32,7 +32,7 @@ class Intention(Base):
     __tablename__ = "intention"
     gid = Column(Integer, primary_key=True, index=True, autoincrement=True)
     # agent = Column(String(64), nullable=False, comment="坐席号")
-    id = Column(Integer, unique=True, primary_key=True, nullable=False,
+    id = Column(BIGINT, unique=True, primary_key=True, nullable=False,
                 comment="意图号")
     name = Column(String(128), comment="意图名称")
     # call_id = Column(String(64), comment="通话流水号")
@@ -214,7 +214,7 @@ class Call(Base):
     call_id = Column(String(64), unique=True, comment="通话流水号")
     agent = Column(String(64), nullable=False, comment="坐席号")
     agent_name = Column(String(64), comment="坐席姓名")
-    intention_id = Column(Integer, comment="意图号")
+    intention_id = Column(BIGINT, comment="意图号")
     intention_name = Column(String(64), comment="意图名称")
     phone = Column(String(16), comment="手机号")
     caller = Column(String(16), comment="主叫号码")
@@ -267,7 +267,7 @@ class CallQuestion(Base):
     call_id = Column(String(64), nullable=False, comment="通话ID")
     agent = Column(String(16), comment="坐席ID")
     # intention = Column(Integer, ForeignKey('intenion'), nullable=False, comment="意图名称")
-    intention_id = Column(Integer, comment="意图号")
+    intention_id = Column(BIGINT, comment="意图号")
     intention_name = Column(String(128), comment="意图名称")
     phone = Column(String(16), comment="客户手机号码")
     create_time = Column(DateTime, default=datetime.datetime.now(),
