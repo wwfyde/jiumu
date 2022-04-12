@@ -37,9 +37,9 @@ class Intention(Base):
     name = Column(String(128), comment="意图名称")
     # call_id = Column(String(64), comment="通话流水号")
     # phone = Column(String(16), comment="手机号")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
 
 
@@ -57,9 +57,9 @@ class Reminder(Base):
     color = Column(String(16), comment="背景颜色")
     time = Column(DateTime, nullable=False, comment="提醒时间")
     phone = Column(String(16), comment="客户手机号")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
 
     ring_time = Column(DateTime, comment="响铃时间")
@@ -92,9 +92,9 @@ class WarningEventMessage(Base):
     fly_screen = Column(Boolean, comment="飞屏类型")
     color = Column(String(16), comment="背景颜色")
     phone = Column(String(16), comment="客户手机号")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
 
     # time = Column(DateTime, nullable=False, comment="提醒时间")
@@ -117,7 +117,7 @@ class CallEventMessage(Base):
     agent_id = Column(String(64), comment="坐席账号")
     call_time = Column(DateTime, comment="来电时间")
     ring_time = Column(DateTime, comment="响铃时间")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
     direction = Column(String(8), comment="呼叫方向")
     caller = Column(String(16), comment="主叫号码")
@@ -155,7 +155,7 @@ class HangupEventMessage(Base):
     called = Column(String(16), comment="被叫号码")
     call_time = Column(DateTime, comment="来电时间")
     color = Column(String(16), comment="背景颜色")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
 
     # hit_word = Column(String(64), comment="命中模型内容")
@@ -166,7 +166,7 @@ class HangupEventMessage(Base):
     # time = Column(DateTime, nullable=False, comment="提醒时间")
     # phone = Column(String(16), comment="客户手机号")
     #
-    # update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    # update_time = Column(DateTime, onupdate=datetime.datetime.now,
     #                      comment="更新时间")
     #
     # agent_account = Column(String(32), comment="坐席分析系统账号")
@@ -178,7 +178,7 @@ class HangupEventMessage(Base):
 #                       Column('call', ForeignKey('call.id'), primary_key=True),
 #                       Column('question', ForeignKey('question.name'), primary_key=True),
 #                       Column('intention', ForeignKey("intention.id"), primary_key=True),
-#                       Column(DateTime, default=datetime.datetime.now(), comment="创建时间"),
+#                       Column(DateTime, default=datetime.datetime.now, comment="创建时间"),
 #                       )
 
 
@@ -189,7 +189,7 @@ class CallModel(Base):
     call_id = Column(String(64), comment="通话ID")
     model_name = Column(String(64), comment="模型名称")
     hit_word = Column(String(64), comment="命中模型内容")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
 
 
@@ -223,9 +223,9 @@ class Call(Base):
     call_time = Column(DateTime, comment="通话时间")
     duration = Column(Integer, comment="通话时长")
     ring_time = Column(DateTime, comment="响铃时间")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
     # questions = relationship("Call", secondary=call_question, back_populates="calls")
     # questions = relationship("Call")
@@ -246,9 +246,9 @@ class Question(Base):
     source = Column(Integer, default=1, comment="问题来源")
     access_times = Column(Integer, comment="点击次数")
     feedback = Column(Integer, comment="反馈状态")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
     # calls = relationship('Question', secondary=call_question, back_populates="questions")
 
@@ -270,9 +270,9 @@ class CallQuestion(Base):
     intention_id = Column(BIGINT, comment="意图号")
     intention_name = Column(String(128), comment="意图名称")
     phone = Column(String(16), comment="客户手机号码")
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          nullable=False, comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")
 
 
@@ -295,7 +295,7 @@ class Demo(Base):
     type = Column(Boolean(), default=True)
     date = Column(DateTime, )
     desc = Column(String(64))
-    create_time = Column(DateTime, default=datetime.datetime.now(),
+    create_time = Column(DateTime, default=datetime.datetime.now,
                          comment="创建时间")
-    update_time = Column(DateTime, onupdate=datetime.datetime.now(),
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
                          comment="更新时间")

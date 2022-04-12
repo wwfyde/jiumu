@@ -66,7 +66,7 @@ def get_token(fresh: bool = False) -> str:
 
 def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int] = None) -> bool:
     """
-    推送热点问题点击和问题反馈
+    当点击热点问题时type=1, 或者问题反馈时, 推送操作事件到云问接口
     :param knowledge_id:
     :param types:
     :param feedback:
@@ -74,13 +74,14 @@ def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int
     """
     try:
         url: str = settings.yunwen_host + settings.yunwen_path.push
-        resp: dict = requests.post(url, data=dict(
+        resp: dict = requests.post(url, json=dict(
             knowledgeId=knowledge_id,
             type=types,
             feedback=feedback
 
-        )).json()
-        if resp['code'] == 200:
+        ), headers={'Content-Type': 'application/json;charset=utf-8'}).json()
+        log.debug(f"提交反馈时接口返回的内容: {resp}")
+        if resp['code'] == 1:
             log.info("提交反馈结果成功")
 
             return True
@@ -94,23 +95,21 @@ def push_question_feedback(knowledge_id: int, types: int, feedback: Optional[int
 
 def push_click_event(knowledge_id: int, question: str):
     """
-    标准问题点击
-    当点击检索问题时, 推送该状态
+    当通过点击检索框点击问题时, 推送该操作事件到云问接口
 
     :param knowledge_id:
     :param question:
     :return:
     """
     try:
-        url: str = settings.yunwen_host + settings.yunwen_path.hit_question_event.format(
-            token=settings.yunwen_path.token
-        )
-        resp: dict = requests.post(url, data=dict(
+        url: str = settings.yunwen_host + settings.yunwen_path.hit_question_event.format(token=get_token())
+        resp: dict = requests.post(url, json=dict(
             knowledgeId=knowledge_id,
             content=question,
-        )).json()
+        ), headers={'Content-Type': 'application/json;charset=utf-8'}).json()
+        log.debug(f"点击检索框问题: [{question}]-[{knowledge_id}]时, 云问接口返回的内容: {resp}")
         if resp['code'] == 1:
-            log.info("反馈标准问题点击状态成功")
+            log.info("反馈检索框问题点击状态成功")
 
             return True
         else:

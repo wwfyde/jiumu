@@ -280,9 +280,22 @@ class Dispatcher:
 
 
 if __name__ == '__main__':
-    def on_speech_stream(msg):
+    def on_speech_stream(msg: str):
         print("正在订阅")
         print("MESSAGE: " + msg)
+        speech_stream = json.loads(msg.replace(BYTE['NULL'], ''))
+        print("转换成字典对象", speech_stream)
+
+        if speech_stream['status'] == 'continue':
+            print("通话进行中")
+
+
+
+        elif speech_stream['status'] == 'begin':
+            print("通话开始")
+
+        elif speech_stream['status'] == 'end':
+            print("通话结束")
         # command, header, body = parse_frame(msg)
         #
         # if command == "MESSAGE":
@@ -298,7 +311,7 @@ if __name__ == '__main__':
         token = '38f6cf95-2282-4b5b-b457-42dd1bfedc99'
         # token = '72bf0745-a04c-4a4b-9bff-cdfc4c0c1c94'
         agent = 1000
-        stomp = Stomp(f"ws://127.0.0.1:8186/hawkeye/rest/v1/stomp?userToken={token}", sockjs=False, wss=False)
+        stomp = Stomp(f"127.0.0.1:8186/hawkeye/rest/v1/stomp?userToken={token}", sockjs=False, wss=False)
         stomp.connect()
 
         print("连接成功")

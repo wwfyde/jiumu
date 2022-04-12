@@ -27,7 +27,7 @@ from app.dependencies import get_db
 from app.inner.qianxun import get_agent_info, get_color_info, subscribe_speech_stream, get_recent_call
 from app.outer.yunwen import get_token, push_question_feedback, search_question, get_intention_outer, push_click_event
 from app.db import models, crud, schemas
-from app.utils.stomp import parse_frame
+from app.utils.stomp import parse_frame, BYTE
 
 # 初始化数据库
 models.Base.metadata.create_all(bind=engine)
@@ -221,11 +221,13 @@ def create_question(question: schemas.CallQuestion,
                                            question=question.question,
                                            question_source=question.source,
                                            )
+    status = False
     if not db_question:
         db.add(db_question_full)
         db.commit()
         db.refresh(db_question_full)
         log.info(f"agent:{question.agent_id},添加问题成功, 问体来源: 标准问题搜索, 问题名称: {question.question}")
+        status = True
     else:
         log.warning("该问题已经存在, 将不会添加到列表中")
 
@@ -233,7 +235,7 @@ def create_question(question: schemas.CallQuestion,
         "code": 1,
         "message": "success",
         "data": db_question_full,
-        "status": True,
+        "status": status,
 
     }
     pass
@@ -317,14 +319,22 @@ def get_answer(question: str,
                 log.debug(f"问题: {question}被访问, 记录访问状态+1")
 
                 # 将问题点击事件推送到云问
-                if source in (1, 2):
+                # 点击检索出的标准问题时推送/反馈操作状态
+
+                if source == 2:
+                    log.info('通过[检索框]查询问题')
                     push_status = push_click_event(db_question.question_id, db_question.question)
 
-                # 热点问题
+                # 点击热点问题时推送/反馈操作状态
+                elif source == 1:
+                    log.info('通过[问题标签]查询问题答案')
+                    push_status = False
                 else:
+                    log.info('通过[热点问题]查询问题答案')
                     push_status = push_question_feedback(db_question.question_id, 1)
 
                 if push_status:
+
                     log.info("问题点击状态推送到云问成功")
                 else:
                     log.warning("推送问题点击状态")
@@ -785,7 +795,8 @@ def on_speech_stream(msg: str):
     # command, header, body = ('MESSAGE', {}, msg)
 
     # if command == "MESSAGE":
-    speech_stream: dict = json.loads(msg.strip())
+    speech_stream: dict = json.loads(msg.replace('\x00', ''))
+    # speech_stream: dict = json.loads(msg.replace(BYTE['NULL'], ''))
 
     if speech_stream['status'] == 'continue':
         log.info("通话进行中")
@@ -809,19 +820,26 @@ def on_speech_stream(msg: str):
 
                 # TODO 将问题列表添加到数据库
                 for question in questions:
-                    db_question = models.CallQuestion(question=question['question'],
-                                                      question_id=question['knowledge_id'],
-                                                      question_source=1,
-                                                      call_id=speech_stream['callId'],
-                                                      agent=speech_stream['agentId'],
-                                                      intention_id=intention_id,
-                                                      intention_name=intention_name,
-                                                      phone=phone)
                     db: Session = SessionLocal()
-                    log.info("添加问题到数据库")
-                    db.add(db_question)
-                    db.commit()
-                    db.refresh(db_question)
+                    db_question_exists = db.query(models.CallQuestion).filter(
+                        models.CallQuestion.call_id == speech_stream['callId'],
+                        models.CallQuestion.question == question['question']
+                    ).first()
+                    if db_question_exists:
+                        log.warning('该问题已经存在, 无须再次添加')
+                    else:
+                        db_question = models.CallQuestion(question=question['question'],
+                                                          question_id=question['knowledge_id'],
+                                                          question_source=1,
+                                                          call_id=speech_stream['callId'],
+                                                          agent=speech_stream['agentId'],
+                                                          intention_id=intention_id,
+                                                          intention_name=intention_name,
+                                                          phone=phone)
+                        log.info(f"向通话ID:{speech_stream['callId']}添加问题: {question['question']}")
+                        db.add(db_question)
+                        db.commit()
+                        db.refresh(db_question)
 
     elif speech_stream['status'] == 'begin':
         log.info("通话开始")
@@ -1045,7 +1063,6 @@ def get_top_question_info(knowledge_id: int):
             "data": {}
 
         }
-
 
 
 #

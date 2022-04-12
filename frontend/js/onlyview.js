@@ -10,6 +10,8 @@ var vm = new Vue({
                 intention_name: '', // 进线意图号码
                 call_id: ''
             },
+            externalLinksHost: 'http://10.222.26.19',
+            smart_order_path: '/webadmin/jomoo/index.html?customerName=',
             defaultProps: {
                 label: 'question',
             },
@@ -101,7 +103,10 @@ var vm = new Vue({
             }).then(res => {
                 let resData = res.data
                 if (resData.code === 1) {
-                    this.$message({message: resData.data.description, type: 'success', duration:1000})
+                    this.$message({message: resData.data.description, type: 'success', duration: 1000})
+                    if (resData.data.status === 1) {
+                        this.isDisabled = true
+                    }
                 }
             }).catch(err => {
                 console.log(err);
@@ -245,7 +250,7 @@ var vm = new Vue({
                 let resData = res.data
                 if (resData.code === 1) {
                     this.getTagsData()
-                    this.$message({message: resData.data.description, type: 'success', duration:1000})
+                    this.$message({message: '删除成功', type: 'success', duration: 1000})
                 }
             }).catch(err => {
                 console.log(err);
@@ -255,7 +260,7 @@ var vm = new Vue({
         },
         // 点击tag显示问题详情
         tagClick(tag) {
-            this.getDetail(tag.question, tag.knowledge_id, tag.question_source)
+            this.getDetail(tag.question, tag.question_id, 1)
             this.showBtn(false)
         },
         // 点击搜索框检索出的问题详情
@@ -275,7 +280,14 @@ var vm = new Vue({
                 let resData = res.data
                 if (resData.code === 1) {
                     this.getTagsData()
-                    this.$message({message: resData.data.description, type: 'success',duration:1000})
+                    if (resData.status) {
+                        this.$message({message: '添加成功', type: 'success', duration: 1000})
+
+                    } else {
+                        this.$message({message: '重复添加', type: 'warning', duration: 1000})
+
+
+                    }
                 }
             }).catch(err => {
                 console.log(err);
@@ -302,7 +314,7 @@ var vm = new Vue({
         // 点击topClick
         topClick(obj) {
             console.log("尝试查询热点问题", obj, obj.question, obj.knowledge_id)
-            this.getDetail(obj.question, obj.knowledge_id,3)
+            this.getDetail(obj.question, obj.knowledge_id, 3)
         },
         // 问题标签知识内容查询
         getDetail(question, knowledge_id, source) {
@@ -311,7 +323,7 @@ var vm = new Vue({
             this.publicKnowledgeId = knowledge_id
             getAnswerDetail({
                 question: question,
-                knowledge_id: this.knowledge_id,
+                knowledge_id: knowledge_id,
                 call_id: this.allParams.call_id,
                 agent: this.allParams.agent,
                 source: source
@@ -320,13 +332,12 @@ var vm = new Vue({
                 console.log("问题知识查询结果", resData)
                 if (resData.code === 1) {
                     // 会返回一个状态是否可以点击反馈状态
-                    this.answerContent = resData.data[0].answer_list[0]
+                    this.answerContent = resData.data[0].answer_list[0].replace('src="', 'src="'+ this.externalLinksHost)
                     //  问题反馈状态
-                    if (resData.status === 0){
+                    if (resData.status === 0) {
                         this.isDisabled = false
-                    }
-                    else{
-                        this.isDisabled =true
+                    } else {
+                        this.isDisabled = true
                     }
 
 
@@ -377,6 +388,9 @@ var vm = new Vue({
                 clearInterval(timer);
                 timer = null;
             })
+        },
+        handleSmartOrder(){
+            window.open(this.externalLinksHost + this.smart_order_path + this.allParams.agent, '_blank')
         }
     },
     mounted() {
