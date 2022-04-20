@@ -17,7 +17,7 @@ function getCallRecord(data) {
 
 // 查询问题标签列表
 function getTags(data) {
-  return fetch_GET('/question', data)
+  return fetch_GET('/tag', data)
 }
 
 // 删除问题标签

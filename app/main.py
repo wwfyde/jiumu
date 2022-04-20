@@ -169,6 +169,87 @@ def search(question: str) -> dict:
     }
 
 
+@app.get("/tag", description="获取标签列表")
+def get_tags(call_id: str,
+             agent: Union[int, str],
+             intention: Optional[Union[int, str]] = None,
+             db: Session = Depends(get_db)
+             ):
+    """
+    根据语音流获取问题列表
+    :param agent:
+    :param call_id:
+    :param intention:
+    :param db:
+    :return:
+    """
+    # 获取当前通话ID的所有标准问题
+    questions = db.query(models.CallQuestion).filter(models.CallQuestion.call_id == call_id,
+                                                     models.CallQuestion.agent == str(agent),
+                                                     # models.CallQuestion.intention_id == intention
+                                                     ).order_by(models.CallQuestion.create_time).all()
+
+    log.info(f"问题列表:{questions}")
+
+    # 根据标准问题获取问题标签
+    tags, tags2 = [], []
+
+    for question in questions:
+        try:
+            url: str = settings.yunwen_host + settings.yunwen_path.answer.format(
+                sys_num=settings.sys_num)
+            resp: dict = requests.get(url, params={
+                "s": "support",
+                "access_token": get_token(),
+                "question": question.question,
+                "clientId": settings.client_id,
+                "sourceId": settings.source_id,
+            }).json()
+
+            if resp.get("status") == 1:
+                log.info(f"查询问题 [{question}] 的知识内容成功")
+                raw_data: list = resp.get("data")
+                log.debug(f"返回的知识: {resp}")
+
+                # 获取问题标签列表
+                for raw_answer in raw_data:
+                    # 获取问题标签列表
+                    question_labels = raw_answer['questionLabel']
+                    for question_label in question_labels:
+                        if question_label['labelId'] not in tags2:
+                            tags2.append(question_label['labelId'])
+                            tags.append(dict(
+                                label_id=question_label['labelId'],
+                                label=question_label["labelName"],
+                                question=question.question,
+                                question_id=question.question_id,
+                                time=datetime.now(),
+                            ))
+                        # 如果tag已存在, 则更新其tag值中的问题和问题ID
+                        else:
+                            for tag in tags:
+                                if tag["label_id"] == question_label['labelId']:
+                                    tag['question'] = question.question
+                                    tag['question_id'] = question.question_id
+                                    tag['time'] = datetime.now()
+
+            else:
+                log.error("接口请求错误")
+
+        except Exception as exc:
+            log.error(f"请求云问接口失败! 请检查接口是否连通, 错误提示: {exc}")
+
+        # 根据日期排序
+    tags = sorted(tags, key=lambda x: x["time"], reverse=True)
+
+    # TODO 获取问题列表的方式
+    return {
+        "code": 1,
+        "message": "success",
+        "data": tags
+    }
+
+
 @app.get("/question", description="获取问题列表")
 def get_questions(call_id: str,
                   agent: Union[int, str],
@@ -818,7 +899,7 @@ def on_speech_stream(msg: str):
                 #     {'question': '测试2', 'knowledge_id': 12434},
                 # ]
 
-                # TODO 将问题列表添加到数据库
+                # 根据标准问题, 获取问题标签列表
                 for question in questions:
                     db: Session = SessionLocal()
                     db_question_exists = db.query(models.CallQuestion).filter(

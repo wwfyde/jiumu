@@ -15,7 +15,7 @@
 
 <body>
   <div id="app" v-cloak>
-    <div class="box"> 
+    <div class="box">
       <div class="header">
         <el-row :gutter="20">
           <el-col :span="3">
@@ -42,12 +42,11 @@
                         <el-tag
                           v-for="(tag,index) in firstFiveTabs"
                           :key="tag.id"
-                          closable
                           :type="tag.type"
                           @click.stop="tagClick(tag)"
                           @close="handleClose(tag)"
                           >
-                          {{tag.question}}
+                          {{tag.label}}
                         </el-tag>
                       </div>
                     </template>
@@ -55,36 +54,33 @@
                       <el-tag
                         v-for="(tag,index) in secondFiveTabs"
                         :key="tag.id"
-                        closable
                         :type="tag.type"
                         @click.stop="tagClick(tag)"
                         @close="handleClose(tag)"
                         >
-                        {{tag.question}}
+                        {{tag.label}}
                       </el-tag>
                     </div>
                     <div class="otherTabs">
                       <el-tag
                         v-for="(tag,index) in thirdFiveTabs"
                         :key="tag.id"
-                        closable
                         :type="tag.type"
                         @click.stop="tagClick(tag)"
                         @close="handleClose(tag)"
                         >
-                        {{tag.question}}
+                        {{tag.label}}
                       </el-tag>
                     </div>
                     <div class="otherTabs">
                       <el-tag
                         v-for="(tag,index) in fourthFiveTabs"
                         :key="tag.id"
-                        closable
                         :type="tag.type"
                         @click.stop="tagClick(tag)"
                         @close="handleClose(tag)"
                         >
-                        {{tag.question}}
+                        {{tag.label}}
                       </el-tag>
                     </div>
                   </el-collapse-item>
@@ -136,6 +132,7 @@
                         type="text"
                         size="mini"
                         icon="el-icon-plus"
+                        style="visibility: hidden"
                         @click.stop="addAppend(data)">
                       </el-button>
                     </span>
@@ -147,7 +144,7 @@
               </div>
               <div class="firstHot" ref="firstHot">
                 <h3 class="topTitle">热门知识TOP榜</h3>
-                <div v-if="isTopLoading" class="topLoadingBox" ref="topLoadingBox"> 
+                <div v-if="isTopLoading" class="topLoadingBox" ref="topLoadingBox">
                   <img src="./images/loading.gif" class="topLoading" alt="">
                 </div>
                 <div v-else class="topContent" ref="topContent">

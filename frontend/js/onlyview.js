@@ -409,7 +409,7 @@ var vm = new Vue({
         // 获取预警提醒
         this.getCheckReminder()
         // TODO 是否定时获取
-        // this.getTimer()
+        this.getTimer()
 
         // 弃用
         // tinymce.init(this.tinymceInit)
