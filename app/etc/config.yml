@@ -1,4 +1,5 @@
 # 配置文档
+# 该配置文件已弃用, 使用 app/core/config.py
 
 yunwen:
     host: http://v5-gdc2-01.faqrobot.net

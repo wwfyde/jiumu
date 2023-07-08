@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from datetime import datetime
 
 from typing import Optional, List, Union
@@ -533,8 +534,8 @@ def get_call_times(agent: Union[int, str], phone: Optional[str] = None, db: Sess
     }
 
 
-@app.post("/feedback", description="问题知识有效性反馈")
-def question_feedback(feedback: schemas.Feedback,
+@app.post("/feedback2", description="问题知识有效性反馈")
+def question_feedback2(feedback: schemas.Feedback,
                       db: Session = Depends(get_db)):
     """
     对问的知识答案进行反馈
@@ -577,6 +578,75 @@ def question_feedback(feedback: schemas.Feedback,
         push_status = False
         status = -1
         description = "无效问题"
+    return {
+        "code": 1,
+        "message": "success",
+        "data": {
+            "status": status,
+            "description": description
+        },
+        "push": push_status,
+    }
+
+
+@app.post("/feedback", description="问题知识有效性反馈")
+def question_feedback(feedback: schemas.Feedback,
+                      db: Session = Depends(get_db)):
+    """
+    对问的知识答案进行反馈
+    :param feedback:
+    :param db:
+    :return:
+    """
+
+    # 如果已经反馈过则不需要再次反馈
+    # 判断问题是否反馈过
+    db_feedback: models.Feedback = db.query(models.Feedback).filter(
+        models.Feedback.question == feedback.question,
+        models.Feedback.call_id == feedback.call_id,
+    ).first()
+
+    # 查询问题是否存在
+    if db_feedback:
+        if db_feedback.feedback == 0:
+            # 将反馈结果推送到云问
+            push_status = push_question_feedback(feedback.knowledge_id, 2,
+                                                 feedback.feedback)
+            log.info("提交反馈成功")
+            status = 1
+            description = "提交成功"
+            db_feedback.feedback = feedback.feedback
+            db_feedback.is_push = 1
+
+            db.commit()
+            db.refresh(db_feedback)
+
+        else:
+            log.debug(f"通话ID: {feedback.call_id}下的问题:{feedback.question}已经反馈过, 无须再次提交反馈")
+            status = 0
+            description = "该问题反馈结果已记录, 无须再次提交"
+            push_status = False
+
+    # 该问题不再问题标签列表中, 无法提交反馈
+    else:
+        log.info(f"问题: [{feedback.question}] 初次提交")
+        # 将反馈结果推送到云问
+        push_status = push_question_feedback(feedback.knowledge_id, 2,
+                                             feedback.feedback)
+
+        db_feedback_new = models.Feedback(question=feedback.question,
+                                          knowledge_id=feedback.knowledge_id,
+                                          feedback=feedback.feedback,
+                                          is_push=1,
+                                          agent=feedback.agent,
+                                          call_id=feedback.call_id
+                                          )
+        db.add(db_feedback_new)
+        db.commit()
+        db.refresh(db_feedback_new)
+
+        status = 1
+        description = "提交成功"
     return {
         "code": 1,
         "message": "success",
@@ -1210,6 +1280,31 @@ async def ws_server(websocket: WebSocket, ):
             pass
         log.info(f"接收信息成功:{data}")
         await websocket.send_text(f"Message text was: {type(data)}")
+
+
+# TODO 实时推送预警提醒
+@app.websocket("/warning_event_server")
+async def warning_event_server(websocket: WebSocket, db: Session = Depends(get_db)):
+    """
+    实时推送预警提醒
+    :param websocket:
+    :param db:
+    :return:
+    """
+    await websocket.accept()
+    while True:
+        # 查询数据库
+        # 查询条件 最近5
+        db.query(models.WarningEventMessage).filter()
+        data: dict = await websocket.receive_json()
+        # TODO 解析语音流信息, 并存储到数据库
+        if data['']:
+            pass
+        log.info(f"接收信息成功:{data}")
+        await websocket.send_json()
+        await websocket.send_text(f"Message text was: {type(data)}")
+        time.sleep(settings.warning_interval)
+
 
 
 if __name__ == "__main__":

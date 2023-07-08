@@ -4,6 +4,7 @@ venv3.8/
 ### log
 *.log
 *.xlsx
+.DS_Store
 
 ### Python template
 # Byte-compiled / optimized / DLL files

@@ -282,10 +282,17 @@ class Feedback(Base):
     """
 
     __tablename__ = "feedback"
-    question = Column(String(64), primary_key=True, comment="问题名称")
-    knowledge_id = Column(Integer, unique=True, comment="问题ID")
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    question = Column(String(64), nullable=False, comment="问题名称")
+    knowledge_id = Column(Integer, comment="问题ID")
     feedback = Column(Integer, default=0, nullable=False, comment="反馈结果")
+    is_push = Column(Integer, default=0, nullable=False, comment="是否推送")
     agent = Column(String(64), comment="坐席账号")
+    call_id = Column(String(64), nullable=False, comment="通话ID")
+    create_time = Column(DateTime, default=datetime.datetime.now,
+                         nullable=False, comment="创建时间")
+    update_time = Column(DateTime, onupdate=datetime.datetime.now,
+                         comment="更新时间")
 
 
 class Demo(Base):

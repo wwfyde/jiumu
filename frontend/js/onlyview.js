@@ -332,7 +332,7 @@ var vm = new Vue({
                 console.log("问题知识查询结果", resData)
                 if (resData.code === 1) {
                     // 会返回一个状态是否可以点击反馈状态
-                    this.answerContent = resData.data[0].answer_list[0].replace('src="', 'src="'+ this.externalLinksHost)
+                    this.answerContent = resData.data[0].answer_list[0].replaceAll('src="/', 'src="'+ this.externalLinksHost+ '/').replaceAll('href="/', 'href="'+ this.externalLinksHost+'/')
                     //  问题反馈状态
                     if (resData.status === 0) {
                         this.isDisabled = false

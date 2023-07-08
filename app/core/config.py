@@ -88,6 +88,10 @@ class Settings(BaseSettings):
     qianxun_host: AnyUrl = "http://127.0.0.1:8186"
     qianxun_path: QianxunPath = QianxunPath()
 
+    # app config
+    # 预警推送频率
+    warning_interval: int = 5
+
     @classmethod
     def get_url(cls, host: AnyUrl, path: str):
         return host + path
