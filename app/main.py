@@ -1,39 +1,38 @@
 import json
 import logging
+import sys
 import time
 from datetime import datetime
-
 from typing import Optional, List, Union
 
 import redis
 import requests
 import xlsxwriter
+from fastapi import FastAPI, Query, Depends, Body, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, RedirectResponse
+from pydantic import BaseModel
 from sqlalchemy import desc, func, extract
 from sqlalchemy.orm import Session
 from starlette.background import BackgroundTasks
 from starlette.responses import HTMLResponse
 from uvicorn import run
-from fastapi import FastAPI, Query, Depends, Body, WebSocket
-from fastapi.middleware.cors import CORSMiddleware
-
-# from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, RedirectResponse
-from pydantic import BaseModel
 
 from app import log
 # from app.config1 import config
 from app.core.config import settings
+from app.db import models, crud, schemas
 from app.db.database import engine, SessionLocal
 from app.dependencies import get_db
 from app.inner.qianxun import get_agent_info, get_color_info, subscribe_speech_stream, get_recent_call
 from app.outer.yunwen import get_token, push_question_feedback, search_question, get_intention_outer, push_click_event
-from app.db import models, crud, schemas
-from app.utils.stomp import parse_frame, BYTE
 
 # 初始化数据库
 models.Base.metadata.create_all(bind=engine)
 
 log.info("初始化数据库表成功!")
+log.info(sys.path)
 app = FastAPI(debug=True, title='九牧实时辅助助手', version='1.0.1')
 
 # origins = [
@@ -536,7 +535,7 @@ def get_call_times(agent: Union[int, str], phone: Optional[str] = None, db: Sess
 
 @app.post("/feedback2", description="问题知识有效性反馈")
 def question_feedback2(feedback: schemas.Feedback,
-                      db: Session = Depends(get_db)):
+                       db: Session = Depends(get_db)):
     """
     对问的知识答案进行反馈
     :param feedback:
@@ -1304,7 +1303,6 @@ async def warning_event_server(websocket: WebSocket, db: Session = Depends(get_d
         await websocket.send_json()
         await websocket.send_text(f"Message text was: {type(data)}")
         time.sleep(settings.warning_interval)
-
 
 
 if __name__ == "__main__":

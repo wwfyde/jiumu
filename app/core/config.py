@@ -67,7 +67,7 @@ class QianxunPath(BaseSettings):
 
 class Settings(BaseSettings):
     redis_dsn: RedisDsn = "redis://127.0.0.1:6379/1"
-    mysql_dsn: MysqlDsn = "mysql+pymysql://root:admin@127.0.0.1:3306" \
+    mysql_dsn: MysqlDsn = "mysql+pymysql://root:wawawa@127.0.0.1:3306" \
                           "/jiumu_helper?charset=utf8mb4"
 
     # mysql_dsn: MysqlDsn = "mysql+pymysql://root:wawawa@127.0.0.1:43306/jiumu_helper"
